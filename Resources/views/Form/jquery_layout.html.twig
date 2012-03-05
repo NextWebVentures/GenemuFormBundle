@@ -742,6 +742,7 @@
                     dataType: 'json',
                     success: function(data) {
                         if ('1' === data.result) {
+                            $field.val(data.file);
                             createCrop({
                                 image: data.image,
                                 thumbnail: $.isEmptyObject(data.thumbnail) ? $.extend(data.image, {

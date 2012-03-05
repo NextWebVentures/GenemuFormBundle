@@ -14,6 +14,7 @@ namespace Genemu\Bundle\FormBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 
@@ -33,9 +34,32 @@ class ImageController extends Controller
     {
         $rootDir = rtrim($this->container->getParameter('genemu.form.file.root_dir'), '/\\') . DIRECTORY_SEPARATOR;
         $folder = rtrim($this->container->getParameter('genemu.form.file.folder'), '/\\') . DIRECTORY_SEPARATOR;
+        $uploadDir = rtrim($this->container->getParameter('genemu.form.file.upload_dir'), '/\\') . DIRECTORY_SEPARATOR;
 
         $file = $request->get('image');
+
         $handle = new Image($rootDir . $this->stripQueryString($file));
+
+        // if custom_storage_folder is true, treat "folder" as tmp dir - copy changed file there
+        // and don't overwrite by now (it should be done after "Save" button action)
+        if ($this->container->hasParameter('genemu.form.file.custom_storage_folder') &&
+            // but change oryginal if we are already in $folder
+            trim($folder, '/\\') != trim(substr($handle->getPath(), strlen($rootDir)), '/\\')
+        ) {
+            if ($this->container->hasParameter('genemu.form.file.disable_guess_extension')) {
+                $name = uniqid() . '.' . $handle->getExtension();
+            } else {
+                $name = uniqid() . '.' . $handle->guessExtension();
+            }
+
+            $target = $uploadDir . $name;
+            if (!@copy($handle->getPathname(), $target)) {
+                $error = error_get_last();
+                throw new FileException(sprintf('Could not move the file "%s" to "%s" (%s)', $handle->getPathname(), $target, strip_tags($error['message'])));
+            }
+
+            $handle = new Image($target);
+        }
 
         switch ($request->get('filter')) {
             case 'rotate':
@@ -60,6 +84,7 @@ class ImageController extends Controller
                 break;
             case 'blur':
                 $handle->addFilterBlur();
+                break;
             default:
                 break;
         }
@@ -82,11 +107,7 @@ class ImageController extends Controller
             $thumbnail = $handle->getThumbnail($selected);
         }
 
-        if($this->container->getParameter('genemu.form.file.custom_storage_folder')){
-            $filePath = $this->stripQueryString($file);
-        }else{
-            $filePath = $folder . '/' . $handle->getFilename();
-        }
+        $filePath = $folder . $handle->getFilename();
 
         $json = array(
             'result' => '1',
