@@ -626,6 +626,7 @@
         var $field = $('#{{ id }}');
         var $form = $field.closest('form');
         var $preview = $('#{{ id }}_img_preview');
+        var $remove = $('#{{ id }}_remove');
         var $options = $('#{{ id }}_options');
         // Base path for apps not on DocumentRoot
         var $basePath = '{{ asset(configs.folder) }}';
@@ -670,7 +671,7 @@
             },
             onAllComplete: function(event, data) {
                 $preview.show();
-                $options.show();
+                $options.fadeIn();
             },
             onError: function() {
                 removePhoto();
@@ -699,6 +700,7 @@
                     .width(Math.round(data.image.width / $ratio))
                     .height(Math.round(data.image.height / $ratio))
                     .attr('src', this.src);
+                $remove.fadeIn();
 
                 if (!$crop) {
                     $options.fadeIn();
@@ -796,11 +798,17 @@
                 .width(96)
                 .height(96);
             $field.val('');
-            $options.hide();
-            $preview.show();
+            $options.fadeOut();
+            $remove.fadeOut();
+            $preview.fadeIn();
         };
 
+        $remove.click(function() {
+            console.info('remove');
+            removePhoto();
+        }).hide();
         $options.hide();
+
     {% if value %}
         createCrop({
             thumbnail: {

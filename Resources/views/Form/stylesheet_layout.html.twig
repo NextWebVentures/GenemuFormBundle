@@ -56,22 +56,29 @@
             position: relative;
         }
 
-        #{{ id }}_preview object, #{{ id }}_overlay {
+        #{{ id }}_preview object, #{{ id }}_preview .remove, #{{ id }}_overlay {
             position: absolute;
-            top: 0;
-            right: 0;
+            top: 3px;
+            right: 3px;
             text-decoration: none;
             display: block;
             z-index: 361;
-            width: 19px;
-            height: 19px;
+            width: 16px;
+            height: 16px;
 
-            background: url({{ asset('bundles/genemuform/images/edit.gif') }});
+            background: url({{ asset('bundles/genemuform/images/edit.png') }});
         }
 
         #{{ id }}_preview object {
             opacity: 0;
             z-index: 362;
+        }
+
+        #{{ id }}_preview .remove {
+            top: 22px;
+            cursor: pointer;
+            z-index: 362;
+            background: url({{ asset('bundles/genemuform/images/delete.png') }});
         }
 
         #{{ id }}_container .left {
@@ -123,7 +130,7 @@
             background-position: -48px -24px;
         }
         #{{ id }}_options .loading {
-            background: #FFF url({{ asset('bundles/genemuform/images/ajax-loader.gif') }}) no-repeat;
+            background: #FFF url({{ asset('bundles/genemuform/images/ajax-loader.gif') }}) center center no-repeat;
             padding: 6px 0;
             height: 11px;
         }
