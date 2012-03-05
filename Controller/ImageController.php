@@ -63,7 +63,7 @@ class ImageController extends Controller
 
         switch ($request->get('filter')) {
             case 'rotate':
-                $handle->addFilterRotate(90);
+                $handle->addFilterRotate(270);
                 break;
             case 'negative':
                 $handle->addFilterNegative();
@@ -107,13 +107,12 @@ class ImageController extends Controller
             $thumbnail = $handle->getThumbnail($selected);
         }
 
-        $filePath = $folder . $handle->getFilename();
 
         $json = array(
             'result' => '1',
-            'file' => $filePath . '?' . time(),
+            'file' => $folder . $handle->getFilename() . '?' . time(),
             'thumbnail' => array(
-                'file' => $filePath . '?' . time(),
+                'file' => $folder . $thumbnail->getFilename() . '?' . time(),
                 'width' => $thumbnail->getWidth(),
                 'height' => $thumbnail->getHeight()
             ),
