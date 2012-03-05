@@ -643,6 +643,13 @@
             'width':     19,
             'height':    19
         })|json_encode|raw }}, {
+            onOpen: function(event, ID, fileObj) {
+                $options.hide();
+                if ($crop) {
+                    $crop.destroy();
+                }
+                $preview.hide();
+            },
             onComplete: function(event, queueID, fileObj, response, data) {
                 var $response = eval('(' + response + ')');
 
@@ -657,11 +664,17 @@
                         thumbnail: $response.thumbnail
                     });
                 } else {
-                    alert('error');
+                    removePhoto();
+                    alert('Server error, try again later');
                 }
             },
+            onAllComplete: function(event, data) {
+                $preview.show();
+                $options.show();
+            },
             onError: function() {
-                //alert('error');
+                removePhoto();
+                alert('Upload error, try again later');
             }
         });
 
@@ -691,15 +704,17 @@
                     $options.fadeIn();
                 }
 
-                $crop = $.Jcrop($preview, {
+                $preview.Jcrop({
+                    keySupport: false, // Scroll/jump issue http://deepliquid.com/content/Jcrop_Troubleshooting.html
                     onSelect: checkCoords,
                     onChange: checkCoords
+                }, function() {
+                    $crop = this;
                 });
             }).attr('src', data.thumbnail.file);
-        }
+        };
 
         var checkCoords = function(coords) {
-
             if (coords.w > 0 && coords.h > 0) {
                 $('.crop', $options).fadeIn();
 
@@ -714,7 +729,7 @@
             }
         }
 
-        $('.change', $options).click(function() {
+        $('.change', $options).click(function(ev) {
             var $this = $(this);
             var $regex = new RegExp('^\\b(.*?) (.*)\\b', 'g');
             var $filter = $this.attr('class').replace($regex, '$1');
@@ -725,6 +740,12 @@
                 opacity: 0.5
             };
 
+            ev.preventDefault();
+            if ($options.find('.loading').length) {
+                alert('Already working, please wait...');
+                return;
+            }
+
             if ('crop' === $filter && !$.isEmptyObject($coords)) {
                 $data = $.extend($data, $coords);
             }
@@ -734,6 +755,9 @@
                 ( 'crop' === $filter && !$.isEmptyObject($coords) )
             ) {
                 $this.addClass('loading');
+                if ($crop) {
+                    $crop.disable();
+                }
 
                 $.ajax({
                     type: 'POST',
@@ -741,6 +765,10 @@
                     data: $data,
                     dataType: 'json',
                     success: function(data) {
+                        if ($crop) {
+                            $crop.enable();
+                        }
+
                         if ('1' === data.result) {
                             $field.val(data.file);
                             createCrop({
@@ -759,10 +787,24 @@
             }
         });
 
+        var removePhoto = function() {
+            if ($crop) {
+                $crop.destroy();
+            }
+            $preview
+                .attr('src', '{{ asset("bundles/genemuform/images/default.png") }}')
+                .width(96)
+                .height(96);
+            $field.val('');
+            $options.hide();
+            $preview.show();
+        };
+
+        $options.hide();
     {% if value %}
         createCrop({
             thumbnail: {
-                file: '{{ thumbnail is defined ? thumbnail.file : value }}',
+                file: '{{ thumbnail is defined ? thumbnail.file|e('js') : value|e('js') }}',
                 width: {{ thumbnail is defined ? thumbnail.width : width }},
                 height: {{ thumbnail is defined ? thumbnail.height : height }},
             },
@@ -771,8 +813,6 @@
                 height: {{ height }}
             }
         });
-    {% else %}
-        $options.hide();
     {% endif %}
 
         $field.uploadify($configs);
