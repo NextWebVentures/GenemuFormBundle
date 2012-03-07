@@ -163,3 +163,11 @@
         <p {{ block('widget_attributes') }}>{{ value|escape }}</p>
     </div>
 {% endblock %}
+
+{% block genemu_subform_widget %}
+{% spaceless %}
+    <div {{ block('container_attributes') }}>
+        {{ block('form_widget') }}
+    </div>
+{% endspaceless %}
+{% endblock %}
