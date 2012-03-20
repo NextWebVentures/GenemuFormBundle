@@ -830,3 +830,11 @@
 </script>
 {% endspaceless %}
 {% endblock genemu_jqueryimage_javascript %}
+
+{% block genemu_jqueryjstree_javascript %}
+{% javascripts
+    '@GenemuFormBundle/Resources/public/js/jquery/jstree.js'
+%}
+<script type="text/javascript" src="{{ asset_url }}"></script>
+{% endjavascripts %}
+{% endblock genemu_jqueryjstree_javascript %}

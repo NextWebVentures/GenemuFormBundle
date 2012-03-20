@@ -93,9 +93,10 @@
 {% block genemu_jquerycolor_widget %}
 {% spaceless %}
     {% if widget == "image" %}
-        <div id="{{ id }}_color" {{ block("widget_container_attributes") }}>
+        {{ block("hidden_widget") }}
+        {% set id = id ~ "_color" %}
+        <div {{ block("widget_container_attributes") }}>
             <div{% if value %} style="background-color: #{{ value }};"{% endif %}>&nbsp;</div>
-            {{ block("hidden_widget") }}
         </div>
     {% else %}
         {{ block("field_widget") }}
@@ -159,15 +160,38 @@
 {% endblock genemu_jquerytokeninput_widget %}
 
 {% block genemu_plain_widget %}
-    <div {{ block('container_attributes') }}>
+    <div {{ block('widget_container_attributes') }}>
+        {% set id = "plain_" ~ id %}
         <p {{ block('widget_attributes') }}>{{ value|escape }}</p>
     </div>
 {% endblock %}
 
 {% block genemu_subform_widget %}
 {% spaceless %}
-    <div {{ block('container_attributes') }}>
+    <div {{ block('widget_container_attributes') }}>
+        {% set id = "subform_" ~ id %}
         {{ block('form_widget') }}
     </div>
 {% endspaceless %}
 {% endblock %}
+
+{% block genemu_jqueryjstree_widget %}
+{% spaceless %}
+{% set class = attr.class | default('') %}
+{% set attr = attr|merge({
+        "class": (class ~ " genemu_jqueryjstree")
+    }) %}
+{{ block("hidden_widget") }}
+{% set attr = attr|merge({
+        "class": (class ~ " genemu_jqueryjstree_widget"),
+        "settings": config|merge({
+            'url':  asset(config.url),
+            'themes': asset(config.themes)
+        })|json_encode|raw
+    }) %}
+
+{% set id = "jstree_" ~ id %}
+    <div {{ block('widget_container_attributes') }}>
+    </div>
+{% endspaceless %}
+{% endblock genemu_jqueryjstree_widget %}

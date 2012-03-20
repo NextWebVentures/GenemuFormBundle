@@ -106,11 +106,11 @@ class GenemuFormExtension extends Extension
         if (true === isset($configs['ssl']['use']) && false === empty($configs['ssl']['use'])) {
             $serverUrl = $configs['ssl']['server_url'];
         }
-        
+
         if (true === empty($configs['private_key'])) {
             throw new \LogicException('Option recaptcha.private_key does not empty.');
         }
-        
+
         if (true === empty($configs['public_key'])) {
             throw new \LogicException('Option recaptcha.public_key does not empty.');
         }

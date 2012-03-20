@@ -39,6 +39,9 @@
             <argument>%genemu.form.file.options%</argument>
             <argument>%genemu.form.file.root_dir%</argument>
         </service>
+        <service id="genemu.form.jquery.type.jstree" class="Genemu\Bundle\FormBundle\Form\JQuery\Type\JstreeType">
+            <tag name="form.type" alias="genemu_jqueryjstree" />
+        </service>
         <service id="genemu.form.jquery.type.geolocation" class="Genemu\Bundle\FormBundle\Form\JQuery\Type\GeolocationType">
             <tag name="form.type" alias="genemu_jquerygeolocation" />
         </service>
