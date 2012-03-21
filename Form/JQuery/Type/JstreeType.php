@@ -42,7 +42,7 @@ class JstreeType extends AbstractType
              ->set('query_param_name',      $form->getAttribute('query_param_name'))
              ->set('json_transform_func',   $form->getAttribute('json_transform_func'))
              ->set('config', array(
-            'url' => '/categories/list',
+            'list' => 'AbcAdminCategoriesBundle_ListController_json',
             'themes' => '/abczdrowie/bundles/abcadminadmin/css/jquery/jstree/themes/default/style.css'
         ));
     }

@@ -185,7 +185,7 @@
 {% set attr = attr|merge({
         "class": (class ~ " genemu_jqueryjstree_widget"),
         "settings": config|merge({
-            'url':  asset(config.url),
+            'list':  path(config.list),
             'themes': asset(config.themes)
         })|json_encode|raw
     }) %}
