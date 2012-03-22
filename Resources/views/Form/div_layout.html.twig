@@ -186,6 +186,7 @@
         "class": (class ~ " genemu_jqueryjstree_widget"),
         "data-settings": config|merge({
             'list':  path(config.list),
+            'search':  path(config.search),
             'themes': asset(config.themes)
         })|json_encode|raw
     }) %}

@@ -29,8 +29,7 @@ class JstreeType extends AbstractType
     public function buildForm(FormBuilder $builder, array $options)
     {
         $builder->setAttribute('route_name',            $options['route_name'])
-                ->setAttribute('query_param_name',      $options['query_param_name'])
-                ->setAttribute('json_transform_func',   $options['json_transform_func']);
+                ->setAttribute('query_param_name',      $options['query_param_name']);
     }
 
     /**
@@ -40,9 +39,9 @@ class JstreeType extends AbstractType
     {
         $view->set('route_name',            $form->getAttribute('route_name'))
              ->set('query_param_name',      $form->getAttribute('query_param_name'))
-             ->set('json_transform_func',   $form->getAttribute('json_transform_func'))
              ->set('config', array(
             'list' => 'AbcAdminCategoriesBundle_ListController_json',
+            'search' => 'AbcAdminCategoriesBundle_SearchController_nodePathById_json',
             'themes' => '/abczdrowie/bundles/abcadminadmin/css/jquery/jstree/themes/default/style.css'
         ));
     }
@@ -58,18 +57,7 @@ class JstreeType extends AbstractType
             // for autocomplete: symfony route name
             'route_name'			=> null,
             // for autocomplete: name of GET parameter used to send search term to given route
-            'query_param_name'		=> 'term',
-            // for autocomplete: javascript function that is used to transform JSON data returned by requests to the
-            //                   given route, this default implementation assumes that data returned is in the same format
-            //                   as used by the 'jquery_autocomplete form-type' (also defined in the Bundle)
-            'json_transform_func'	=> '
-            function(data) {
-                var terms = {};
-                $.each(data, function (k, v) {
-                    if (v.value && v.label) terms[v.value] = v.label;
-                });
-                return terms;
-            }'
+            'query_param_name'		=> 'term'
         );
 
         return array_replace($defaultOptions, $options);
