@@ -40,10 +40,10 @@ class JstreeType extends AbstractType
         $view->set('route_name',            $form->getAttribute('route_name'))
              ->set('query_param_name',      $form->getAttribute('query_param_name'))
              ->set('config', array(
-            'list' => 'AbcAdminCategoriesBundle_ListController_json',
-            'search' => 'AbcAdminCategoriesBundle_SearchController_nodePathById_json',
-            'themes' => '/abczdrowie/bundles/abcadminadmin/css/jquery/jstree/themes/default/style.css'
-        ));
+                 'list' => 'AbcAdminCategoriesBundle_ListController_json',
+                 'search' => 'AbcAdminCategoriesBundle_SearchController_nodePathById_json',
+                 'themes' => 'bundles/abcadminadmin/css/jquery/jstree/themes/default/style.css'
+             ));
     }
 
     /**

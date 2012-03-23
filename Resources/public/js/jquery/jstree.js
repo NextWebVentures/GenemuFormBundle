@@ -53,13 +53,15 @@ $(function () {
                          * @return {Object}
                          */
                         data: function (node) {
-                            if (node == -1) { // init load
-                                // add a param (ie. val) with current value of $element to tell server to return
-                                // complete tree path for current value
-                            }
-                            return {
+                            var data = {
                                 id: node.data ? node.data('id') : 0
                             };
+                            if (node == -1) { // init load
+                                // add the value of current $element to tell server to return
+                                // complete expanded tree path for this element
+                                data.current = $element.val();
+                            }
+                            return data;
                         },
                         /**
                          * It will be used to populate the tree - this can be useful if you want to somehow change what
