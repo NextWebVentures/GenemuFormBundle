@@ -12,21 +12,21 @@ $(function () {
         $widget
             // jstree loaded
             .bind('loaded.jstree', function (event, data) {
-                if ($element.val()) {
-                    data.inst.search($element.val());
-                }
+//                if ($element.val()) {
+//                    data.inst.search($element.val());
+//                }
                 data.inst.select_node('#' + $id + '_' + ($element.val() ? $element.val() : 0), true);
             })
-            // change input field as select changes
-            .bind('select_node.jstree', function (event, data) {
-                $element.val(data.inst.get_selected().data('id'));
-            })
-            .bind('search.jstree', function (event, data) {
-                // @TODO co jest w data i event, mogę sprawdzić czy faktycznie coś znalazł?
-                // @TODO wywal select_node do odrębnej metody
-                data.inst.clear_search();
-                data.inst.select_node('#' + $id + '_' + ($element.val() ? $element.val() : 0), true);
-            })
+//            // change input field as select changes
+//            .bind('select_node.jstree', function (event, data) {
+//                $element.val(data.inst.get_selected().data('id'));
+//            })
+//            .bind('search.jstree', function (event, data) {
+//                // @TODO co jest w data i event, mogę sprawdzić czy faktycznie coś znalazł?
+//                // @TODO wywal select_node do odrębnej metody
+//                data.inst.clear_search();
+//                data.inst.select_node('#' + $id + '_' + ($element.val() ? $element.val() : 0), true);
+//            })
             // initial load
             .bind('init.jstree', function (event, data) {
 
@@ -59,7 +59,7 @@ $(function () {
                             if (node == -1) { // init load
                                 // add the value of current $element to tell server to return
                                 // complete expanded tree path for this element
-                                data.current = $element.val();
+                                data.current = $element.val() || null;
                             }
                             return data;
                         },
