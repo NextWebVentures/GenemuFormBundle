@@ -17,10 +17,10 @@ $(function () {
 //                }
                 data.inst.select_node('#' + $id + '_' + ($element.val() ? $element.val() : 0), true);
             })
-//            // change input field as select changes
-//            .bind('select_node.jstree', function (event, data) {
-//                $element.val(data.inst.get_selected().data('id'));
-//            })
+            // change input field as select changes
+            .bind('select_node.jstree', function (event, data) {
+                $element.val(data.inst.get_selected().data('id'));
+            })
 //            .bind('search.jstree', function (event, data) {
 //                // @TODO co jest w data i event, mogę sprawdzić czy faktycznie coś znalazł?
 //                // @TODO wywal select_node do odrębnej metody
@@ -114,18 +114,18 @@ $(function () {
                         },
                         error: function (data, textStatus, jqXHR) {
                             if (data.status != 200) {
-                                alert(textStatus);
+                                $.widget.html('JSTree data loading error: ' + textStatus);
                             }
                         },
                         statusCode: {
                             404: function () {
-                                alert('Page not found');
+                                $.widget.html('Page not found');
                             },
                             403: function () {
-                                alert('Access denied');
+                                $.widget.html('Access denied');
                             },
                             500: function () {
-                                alert('The server encountered an error');
+                                $.widget.html('The server encountered an error');
                             }
                         }
                     }
