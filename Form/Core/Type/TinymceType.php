@@ -59,9 +59,9 @@ class TinymceType extends AbstractType
     public function getDefaultOptions(array $options)
     {
         $defaultOptions = array(
-            'configs' => array_merge($this->options, array(
+            'configs' => array_merge(array(
                 'language' => \Locale::getDefault(),
-            )),
+            ), $this->options),
             'required' => false,
         );
 
