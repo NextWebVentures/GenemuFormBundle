@@ -16,6 +16,7 @@ use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\FormInterface;
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Gedmo\Tool\Wrapper\MongoDocumentWrapper;
 use Genemu\Bundle\FormBundle\Form\Core\DataTransformer\DocumentToIdTransformer;
 
 /**
@@ -62,8 +63,17 @@ class JstreeType extends AbstractType
      */
     public function buildView(FormView $view, FormInterface $form)
     {
+        $config = $form->getAttribute('config');
+
+        if (!isset($config['document_id'])) {
+            $form = $form->getParent();
+            $normData = $form->getNormData();
+            $wrappedNormData = MongoDocumentWrapper::wrapp($normData, $this->documentManager);
+            $config['document_id'] = $wrappedNormData->getIdentifier(true);
+        }
+
         $view
-            ->set('config', $form->getAttribute('config'));
+            ->set('config', $config);
     }
 
     /**

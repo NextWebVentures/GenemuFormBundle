@@ -31,6 +31,12 @@ $(function () {
             .bind('init.jstree', function (event, data) {
 
             })
+            .bind('load_node.jstree', function (event, data) {
+                if ($settings.document_id) {
+                    // remove current document to prevent circular (infinite) recursion
+                    data.inst.delete_node('#' + $id + '_' + $settings.document_id);
+                }
+            })
             .jstree($.extend({
                 core: {},
                 plugins: ['themes', 'json_data', 'ui', 'hotkeys', 'search'],
