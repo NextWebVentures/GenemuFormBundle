@@ -15,6 +15,8 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\FormInterface;
+use Doctrine\ODM\MongoDB\DocumentManager;
+use Genemu\Bundle\FormBundle\Form\Core\DataTransformer\DocumentToIdTransformer;
 
 /**
  * Jstree to JQueryLib
@@ -24,12 +26,35 @@ use Symfony\Component\Form\FormInterface;
 class JstreeType extends AbstractType
 {
     /**
+     * The field of which the identifier of the underlying class consists
+     *
+     * This property should only be accessed through identifier.
+     *
+     * @var string
+     */
+    private $identifier;
+
+    /**
+     * DocumentManager
+     *
+     * @var \Doctrine\ODM\MongoDB\DocumentManager
+     */
+    private $documentManager;
+
+    public function __construct(DocumentManager $documentManager)
+    {
+        $this->documentManager = $documentManager;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function buildForm(FormBuilder $builder, array $options)
     {
-        $builder->setAttribute('route_name',            $options['route_name'])
-                ->setAttribute('query_param_name',      $options['query_param_name']);
+        $builder->prependClientTransformer(new DocumentToIdTransformer($options['document_manager'], $options['class']));
+
+        $builder->setAttribute('config',            $options['config']);
+        //        ->setAttribute('query_param_name',      $options['query_param_name']);
     }
 
     /**
@@ -37,13 +62,8 @@ class JstreeType extends AbstractType
      */
     public function buildView(FormView $view, FormInterface $form)
     {
-        $view->set('route_name',            $form->getAttribute('route_name'))
-             ->set('query_param_name',      $form->getAttribute('query_param_name'))
-             ->set('config', array(
-                 'list' => 'AbcAdminCategoriesBundle_ListController_json',
-                 'search' => 'AbcAdminCategoriesBundle_SearchController_nodePathById_json',
-                 'themes' => 'bundles/abcadminadmin/css/jquery/jstree/themes/default/style.css'
-             ));
+        $view
+            ->set('config', $form->getAttribute('config'));
     }
 
     /**
@@ -52,12 +72,8 @@ class JstreeType extends AbstractType
     public function getDefaultOptions(array $options)
     {
         $defaultOptions = array(
-            'widget'                => 'choice',
-
-            // for autocomplete: symfony route name
-            'route_name'			=> null,
-            // for autocomplete: name of GET parameter used to send search term to given route
-            'query_param_name'		=> 'term'
+            'class'             => null,
+            'document_manager'  => $this->documentManager
         );
 
         return array_replace($defaultOptions, $options);
@@ -66,24 +82,9 @@ class JstreeType extends AbstractType
     /**
      * {@inheritdoc}
      */
-    public function getAllowedOptionValues(array $options)
-    {
-        return array(
-            'widget' => array(
-                'choice',
-                'entity',
-                'document',
-                'model',
-            )
-        );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getParent(array $options)
     {
-        return $options['widget'];
+        return 'field';
     }
 
     /**

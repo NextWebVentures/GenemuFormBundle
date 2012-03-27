@@ -40,6 +40,7 @@
             <argument>%genemu.form.file.root_dir%</argument>
         </service>
         <service id="genemu.form.jquery.type.jstree" class="Genemu\Bundle\FormBundle\Form\JQuery\Type\JstreeType">
+            <argument type="service" id="doctrine.odm.mongodb.document_manager" />
             <tag name="form.type" alias="genemu_jqueryjstree" />
         </service>
         <service id="genemu.form.jquery.type.geolocation" class="Genemu\Bundle\FormBundle\Form\JQuery\Type\GeolocationType">
