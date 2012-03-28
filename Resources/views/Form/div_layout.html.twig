@@ -162,7 +162,7 @@
 {% block genemu_plain_widget %}
     <div {{ block('widget_container_attributes') }}>
         {% set id = "plain_" ~ id %}
-        <p {{ block('widget_attributes') }}>{{ value|escape }}</p>
+        <p {{ block('widget_attributes') }}>{{ (value|escape) | default("<em class=\"default_value\">" ~ (empty_value|escape) ~ "</em>")|raw }}</p>
     </div>
 {% endblock %}
 

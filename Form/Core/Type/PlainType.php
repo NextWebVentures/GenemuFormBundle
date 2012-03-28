@@ -6,6 +6,7 @@ use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
+use Genemu\Bundle\FormBundle\Form\Core\DataTransformer\ValueToStringTransformer;
 
 /**
  * A Form type that just renders the field as a p tag. This is useful for forms where certain field
@@ -24,6 +25,7 @@ class PlainType extends AbstractType
             'widget'  => 'field',
             'configs' => array(),
             'read_only' => true,
+            'empty_value'  => '',
             'attr' => array(
                 'class' => $this->getName()
             )
@@ -36,30 +38,34 @@ class PlainType extends AbstractType
     /**
      * {@inheritdoc}
      */
-    public function buildView(FormView $view, FormInterface $form)
+    public function buildForm(FormBuilder $builder, array $options)
     {
-        $value = $form->getClientData();
+        $format = null;
+        if (isset($options['format'])) {
+            $format = $options['format'];
+        }
+        $builder->appendClientTransformer(new ValueToStringTransformer($format));
 
-        // set string representation
-        if (true === $value) {
-            $value = 'true';
-        } else if (false === $value) {
-            $value = 'false';
-        } else if (null === $value) {
-            $value = 'null';
-        } else if (is_array($value)) {
-            $value = implode(', ', $value);
-        } else if ($value instanceof \DateTime) {
-            $value = $value->format('Y-m-d H:i:s');
-        } else if (is_object($value)) {
-            if (method_exists($value, '__toString')) {
-                $value = $value->__toString();
-            } else {
-                $value = get_class($value);
-            }
+        // empty value
+        $emptyValue = null;
+        if (isset($options['empty_value'])) {
+            $emptyValue = $options['empty_value'];
         }
 
-        $view->set('value', (string) $value);
+        $builder
+            ->setAttribute('empty_value', $emptyValue)
+        ;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function buildView(FormView $view, FormInterface $form)
+    {
+
+        $view
+            ->set('value', (string) $form->getClientData())
+            ->set('empty_value', $form->getAttribute('empty_value'));
     }
 
     /**
