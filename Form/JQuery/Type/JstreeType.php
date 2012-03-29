@@ -66,10 +66,10 @@ class JstreeType extends AbstractType
         $config = $form->getAttribute('config');
 
         if (!isset($config['document_id'])) {
-            $form = $form->getParent();
-            $normData = $form->getNormData();
-            $wrappedNormData = MongoDocumentWrapper::wrapp($normData, $this->documentManager);
-            $config['document_id'] = $wrappedNormData->getIdentifier(true);
+            if (($form = $form->getParent()) && ($normData = $form->getNormData())) {
+                $wrappedNormData = MongoDocumentWrapper::wrapp($normData, $this->documentManager);
+                $config['document_id'] = $wrappedNormData->getIdentifier(true);
+            }
         }
 
         $view
