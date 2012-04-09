@@ -92,8 +92,12 @@ class ChoiceToJsonTransformer implements DataTransformerInterface
                     $choices[] = $value['value'];
                 }
             }
-        } else {
+        } elseif (is_array($values) && empty($values)) {
+            $choices = null;
+        } else if (isset($values['value'])) {
             $choices = $values['value'];
+        } else {
+            $choices = null;
         }
 
         return $choices;

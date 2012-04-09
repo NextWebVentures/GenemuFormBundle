@@ -200,7 +200,9 @@
                 var $val = $tokeninput.tokenInput('get');
 {% if multiple is empty %}                // get first (and only one) element from object
                 for (first in $val) break;
-                $val = $val[first];{% endif %}
+                if ('undefined' != typeof first) {
+                    $val = $val[first];
+                }{% endif %}
 
                 $field.val(JSON.stringify($val));
             };
