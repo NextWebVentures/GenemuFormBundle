@@ -70,15 +70,19 @@ class ImageType extends AbstractType
         $configs = $form->getAttribute('configs');
         $data = $form->getClientData();
 
-        if (false === empty($data)) {
+        if (!empty($data)) {
             if (false === ($data instanceof Image)) {
-                if($data instanceof File) {
+                if ($data instanceof File) {
                     $data = new Image($form->getAttribute('rootDir') . '/' . $configs['folder']  . '/' . $data->getFilename());
-                } else {
+                } else if (is_string($data)) {
                     $data = new Image($form->getAttribute('rootDir') . '/' . $data);
+                } else {
+                    $data = null;
                 }
             }
+        }
 
+        if (!empty($data)) {
             $data->searchThumbnails();
 
             if (($configs['custom_storage_folder']) && (false === ($value = $form->getClientData()) instanceof File)) {
