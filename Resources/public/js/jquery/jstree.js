@@ -19,7 +19,13 @@ $(function () {
             })
             // change input field as select changes
             .bind('select_node.jstree', function (event, data) {
-                $element.val(data.inst.get_selected().data('id'));
+                var val = data.inst.get_selected().data('id');
+
+                if (!val) {
+                    val = null;
+                }
+
+                $element.val(val);
             })
 //            .bind('search.jstree', function (event, data) {
 //                // @TODO co jest w data i event, mogę sprawdzić czy faktycznie coś znalazł?
