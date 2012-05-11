@@ -820,12 +820,12 @@
         createCrop({
             thumbnail: {
                 file: '{{ thumbnail is defined ? thumbnail.file|e('js') : value|e('js') }}',
-                width: {{ thumbnail is defined ? thumbnail.width : width }},
-                height: {{ thumbnail is defined ? thumbnail.height : height }},
+                width: {{ thumbnail is defined ? thumbnail.width : width|default(0) }},
+                height: {{ thumbnail is defined ? thumbnail.height : height|default(0) }}
             },
             image: {
-                width: {{ width }},
-                height: {{ height }}
+                width: {{ width|default(0) }},
+                height: {{ height|default(0) }}
             }
         });
     {% endif %}
