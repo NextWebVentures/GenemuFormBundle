@@ -46,19 +46,28 @@ class DocumentToIdTransformer implements DataTransformerInterface
      */
     public function transform($document)
     {
-        if (null === $document || '' === $document) {
-            return '';
+        if (empty($document)) {
+            return $document;
         }
 
         if (!is_object($document)) {
             throw new UnexpectedTypeException($document, 'object');
         }
 
-        if (!$this->dm->getUnitOfWork()->isInIdentityMap($document)) {
-            throw new TransformationFailedException('Documents passed to the choice field must be managed');
+        if ($this->dm->getUnitOfWork()->isInIdentityMap($document)) {
+            $document = $this->dm->getUnitOfWork()->getDocumentIdentifier($document);
+        } else if ($document instanceof \Doctrine\Common\Collections\Collection) {
+            /** @var \Doctrine\ODM\MongoDB\PersistentCollection $document */
+            $keys = array();
+            foreach ($document->getValues() as $d) {
+                $keys[] = $this->dm->getUnitOfWork()->getDocumentIdentifier($d);
+            }
+            $document = $keys;
+        } else {
+            throw new TransformationFailedException('Document passed to the choice field have to be managed');
         }
 
-        return $this->dm->getUnitOfWork()->getDocumentIdentifier($document);
+        return $document;
     }
 
     /**
@@ -74,10 +83,24 @@ class DocumentToIdTransformer implements DataTransformerInterface
             return null;
         }
 
-        if (!($document = $this->dm->find($this->class, $key))) {
-            throw new TransformationFailedException(sprintf('The document with key "%s" could not be found', $key));
+        // multiple
+        $multiple = true;
+        if (!is_array($key)) {
+            $multiple = false;
+            $key = array($key);
         }
 
-        return $document;
+        $documents = array();
+        foreach ($key as $k) {
+            if (!($documents[] = $this->dm->find($this->class, $k))) {
+                throw new TransformationFailedException(sprintf('The document with key "%s" could not be found', $k));
+            }
+        }
+
+        if (!$multiple) {
+            return reset($documents);
+        }
+
+        return $documents;
     }
 }
