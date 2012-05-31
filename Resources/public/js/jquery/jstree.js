@@ -45,7 +45,7 @@ $(function () {
             })
             .jstree($.extend({
                 core: {},
-                plugins: ['themes', 'json_data', 'ui', 'hotkeys', 'search'],
+                plugins: $.merge(['themes', 'json_data', 'ui', 'hotkeys', 'search'], $settings.plugins || []),
                 ui: {
                     select_limit: 1
                 },
