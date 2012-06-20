@@ -1,0 +1,87 @@
+.genemu_jqueryimage {
+    overflow: hidden;
+}
+
+.genemu_jqueryimage .preview {
+    overflow: hidden;
+    position: relative;
+}
+
+.genemu_jqueryimage .preview object, .genemu_jqueryimage .preview .remove, .genemu_jqueryimage .overlay {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    text-decoration: none;
+    display: block;
+    z-index: 991;
+    width: 16px;
+    height: 16px;
+
+    background: url('../images/edit.png');
+}
+
+.genemu_jqueryimage .preview object {
+    opacity: 0;
+    z-index: 992;
+}
+
+.genemu_jqueryimage .preview .remove {
+    top: 22px;
+    cursor: pointer;
+    z-index: 992;
+    background: url('../images/delete.png');
+}
+
+.genemu_jqueryimage_container .left {
+    float: left;
+    position: relative;
+}
+
+.genemu_jqueryimage .options {
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    z-index: 991;
+}
+
+.genemu_jqueryimage .options li {
+    background: transparent url('../images/icons.png');
+
+    display: inline;
+    float: left;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+}
+
+.genemu_jqueryimage .options .rotate {
+    background-position: 0 0;
+}
+
+.genemu_jqueryimage .options .bw {
+    background-position: 0 -24px;
+}
+
+.genemu_jqueryimage .options .negative {
+    background-position: -24px 0;
+}
+
+.genemu_jqueryimage .options .sepia {
+    background-position: -24px -24px;
+}
+
+.genemu_jqueryimage .options .crop {
+    background-position: -48px 0;
+}
+
+.genemu_jqueryimage .options .blur {
+    background-position: -48px -24px;
+}
+.genemu_jqueryimage .options .loading {
+    background: #FFF url('../images/ajax-loader.gif') center center no-repeat;
+    padding: 6px 0;
+    height: 11px;
+}

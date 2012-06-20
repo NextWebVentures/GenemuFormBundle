@@ -120,31 +120,54 @@
 
 {% block genemu_jqueryimage_widget %}
 {% spaceless %}
-    <div id="{{ id }}_container">
+    <div id="image_{{ id }}_container" class="genemu_jqueryimage"
+        data-settings="{{ configs|merge(
+            {
+                'id': id,
+                'assetfolder': asset(configs.folder),
+                'uploader':  asset(configs.uploader),
+                'cancelImg': asset(configs.cancelImg),
+                'script':    path(configs.script),
+                'genemu_form_image': path('genemu_form_image')
+            })|json_encode }}"
+        data-filters="{{ filters|json_encode }}"
+        data-thumbnails="{{ thumbnails|json_encode }}"
+        data-thumbnail="{{ (thumbnail is defined ? thumbnail : {})|json_encode }}"
+        data-selected="{{ (selected is defined ? selected : "") }}"
+        data-value="{{ (value is defined ? value : 0) }}"
+        data-width="{{ (width is defined ? width : 0) }}"
+        data-height="{{ (height is defined ? height : 0) }}"
+        >
         <div class="left">
-            <div id="{{ id }}_preview">
+            <div id="image_{{ id }}_preview" class="preview">
                 {% set type = "hidden" %}
                 {{ block("hidden_widget") }}
 
-                <a id="{{ id }}_overlay" href="#">&nbsp;</a>
-                <span id="{{ id }}_remove" class="remove">&nbsp;</span>
+                <a id="image_{{ id }}_overlay" class="overlay" href="#">&nbsp;</a>
+                <span id="image_{{ id }}_remove" class="remove">&nbsp;</span>
 
                 {% set asset = asset("bundles/genemuform/images/default.png") %}
                 {% set width = 96 %}
                 {% set height = 96 %}
 
-                <img id="{{ id }}_img_preview" src="{{ asset }}" width="{{ width }}" height="{{ height }}" />
-            </div>
-            <ul id="{{ id }}_options" class="options">
-                {% for filter in filters %}
+                <img id="image_{{ id }}_img_preview" class="img_preview" src="{{ asset }}" width="{{ width }}" height="{{ height }}" />
+
+                <ul id="image_{{ id }}_options" class="options">
+                    {% for filter in filters %}
                     <li class="{{ filter }} change"></li>
-                {% endfor %}
-            </ul>
+                    {% endfor %}
+                </ul>
+            </div>
             <div class="queue">
-                <div id="{{ id }}_queue"></div>
+                <div id="image_{{ id }}_queue"></div>
             </div>
         </div>
     </div>
+    <script type="text/javascript">
+        $(function() {
+            $('#image_{{ id }}_container').trigger('create');
+        });
+    </script>
 {% endspaceless %}
 {% endblock genemu_jqueryimage_widget %}
 
