@@ -73,28 +73,35 @@ class ImageType extends AbstractType
         if (!empty($data)) {
             if (false === ($data instanceof Image)) {
                 if ($data instanceof File) {
-                    $data = new Image($form->getAttribute('rootDir') . '/' . $configs['folder']  . '/' . $data->getFilename());
+                    $path = $data->getPath();
+                    if (empty($path)) {
+                        $path = $configs['folder'];
+                    }
+                    $image = new Image($form->getAttribute('rootDir') . '/' . $path . '/' . $data->getFilename());
                 } else if (is_string($data)) {
-                    $data = new Image($form->getAttribute('rootDir') . '/' . $data);
+                    $image = new Image($form->getAttribute('rootDir') . '/' . $data);
                 } else {
-                    $data = null;
+                    $image = null;
                 }
             }
         }
 
-        if (!empty($data)) {
-            $data->searchThumbnails();
+        if (!empty($image)) {
+            $image->searchThumbnails();
 
             if (($configs['custom_storage_folder']) && (false === ($value = $form->getClientData()) instanceof File)) {
                 // This if will be executed only when we load entity with existing file pointed to the folder different
                 // from $configs['folder']
                 $folder = dirname($value);
             } else {
-                $folder = $configs['folder'];
+                $folder = $data->getPath();
+                if (empty($folder)) {
+                    $folder = $configs['folder'];
+                }
             }
 
-            if (true === $data->hasThumbnail($this->selected)) {
-                $thumbnail = $data->getThumbnail($this->selected);
+            if (true === $image->hasThumbnail($this->selected)) {
+                $thumbnail = $image->getThumbnail($this->selected);
 
                 $view
                     ->set('thumbnail', array(
@@ -104,13 +111,13 @@ class ImageType extends AbstractType
                     ));
             }
 
-            $value = $folder . DIRECTORY_SEPARATOR . $data->getFilename();
+            $value = $folder . DIRECTORY_SEPARATOR . $image->getFilename();
 
             $view
                 ->set('value', $value)
                 ->set('file', $value)
-                ->set('width', $data->getWidth())
-                ->set('height', $data->getHeight());
+                ->set('width', $image->getWidth())
+                ->set('height', $image->getHeight());
         }
 
         $view->set('filters', $this->filters);
