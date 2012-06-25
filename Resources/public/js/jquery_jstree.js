@@ -9,23 +9,45 @@ $(function () {
             return ($(a).parent().data('id') || '').toLowerCase().indexOf(m[3].toLowerCase()) >= 0;
         };
 
+        if ($settings.multiple) {
+            ($settings.plugins || ($settings.plugins = [])).push('checkbox');
+        }
+
         $widget
             // jstree loaded
             .bind('loaded.jstree', function (event, data) {
 //                if ($element.val()) {
 //                    data.inst.search($element.val());
 //                }
-                data.inst.select_node('#' + $id + '_' + ($element.val() ? $element.val() : 0), true);
+                              console.info($settings.multiple);
+                if (!$settings.multiple) {
+                    console.debug($element.val());
+                    console.debug('#' + $id + '_' + ($element.val() ? $element.val() : 0));
+                    data.inst.select_node('#' + $id + '_' + ($element.val() ? $element.val() : 0), true);
+                } else {
+                    var val = JSON.parse($element.val());
+                    $.each(val, function(i, check) {
+                        data.inst.check_node('#' + $id + '_' + (check ? check : 0), true);
+                    });
+                }
             })
             // change input field as select changes
             .bind('select_node.jstree', function (event, data) {
-                var val = data.inst.get_selected().data('id');
+                if (!$settings.multiple) {
+                    var val = data.inst.get_selected().data('id');
 
-                if (!val) {
-                    val = null;
+                    if (!val) {
+                        val = null;
+                    }
+
+                    $element.val(val);
+                } else {
+                    var val = [];
+                    $.each(data.inst.get_checked(), function(i, check) {
+                        val.push($(check).data('id'));
+                    });
+                    $element.val(JSON.stringify(val));
                 }
-
-                $element.val(val);
             })
 //            .bind('search.jstree', function (event, data) {
 //                // @TODO co jest w data i event, mogę sprawdzić czy faktycznie coś znalazł?
@@ -42,6 +64,9 @@ $(function () {
                     // remove current document to prevent circular (infinite) recursion
                     data.inst.delete_node('#' + $id + '_' + $settings.document_id);
                 }
+            })
+            .bind('change_state.jstree', function(event, data) {
+                $(this).trigger('select_node.jstree', data)
             })
             .jstree($.extend({
                 core: {},
@@ -160,7 +185,15 @@ $(function () {
                             }
                             return data;
                         }
+                    },
+                    error: function (data, textStatus, jqXHR) {
+                        if (data.status != 200) {
+                            $.widget.html('JSTree search error: ' + textStatus);
+                        }
                     }
+                },
+                checkbox: {
+                    override_ui: true
                 }
             }, $settings.config || {}));
     });

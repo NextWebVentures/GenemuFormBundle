@@ -41,13 +41,25 @@ class DocumentToIdTransformer implements DataTransformerInterface
     /**
      * Transforms documents into choice keys
      *
-     * @param Collection|object $document A collection of documents, a single document or NULL
+     * @param Collection|object|array $document A collection of documents, a single document or NULL
      * @return mixed An array of choice keys, a single key or NULL
      */
     public function transform($document)
     {
         if (empty($document)) {
             return $document;
+        }
+
+        if (is_array($document)) {
+            $return = array();
+            foreach ($document as $d) {
+                $d = $this->transform($d);
+                if (!is_array($d)) {
+                    $d = array($d);
+                }
+                $return = array_merge($return, $d);
+            }
+            return $return;
         }
 
         if (!is_object($document)) {
@@ -86,8 +98,13 @@ class DocumentToIdTransformer implements DataTransformerInterface
         // multiple
         $multiple = true;
         if (!is_array($key)) {
-            $multiple = false;
-            $key = array($key);
+            //$jsonKey = json_decode($key);
+            //if (null === $jsonKey && !is_scalar($jsonKey)) {
+                $multiple = false;
+                $key = array($key);
+            //} else {
+            //    $key = $jsonKey;
+            //}
         }
 
         $documents = array();

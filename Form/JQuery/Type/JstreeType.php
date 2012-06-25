@@ -18,6 +18,7 @@ use Symfony\Component\Form\FormInterface;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Gedmo\Tool\Wrapper\MongoDocumentWrapper;
 use Genemu\Bundle\FormBundle\Form\Core\DataTransformer\DocumentToIdTransformer;
+use Genemu\Bundle\FormBundle\Form\Core\DataTransformer\ValueToJsonTransformer;
 
 /**
  * Jstree to JQueryLib
@@ -52,10 +53,16 @@ class JstreeType extends AbstractType
      */
     public function buildForm(FormBuilder $builder, array $options)
     {
-        $builder->prependClientTransformer(new DocumentToIdTransformer($options['document_manager'], $options['class']));
+        $builder->prependClientTransformer(new DocumentToIdTransformer(
+            $options['document_manager'],
+            $options['class']
+        ));
 
-        $builder->setAttribute('config',            $options['config']);
-        //        ->setAttribute('query_param_name',      $options['query_param_name']);
+        $builder
+                ->appendClientTransformer(new ValueToJsonTransformer())
+                ->setAttribute('config', $options['config'])
+                ->setAttribute('required', (bool) $options['required'])
+                ->setAttribute('multiple', (bool) $options['multiple']);
     }
 
     /**
@@ -64,7 +71,10 @@ class JstreeType extends AbstractType
     public function buildView(FormView $view, FormInterface $form)
     {
         $config = $form->getAttribute('config');
+        $config['required'] = (bool) $form->getAttribute('required');
+        $config['multiple'] = (bool) $form->getAttribute('multiple');
 
+        // here we overwrite $form! Watch out!
         if (!isset($config['document_id'])) {
             if (($form = $form->getParent()) && ($normData = $form->getNormData()) && is_object($normData)) {
                 $wrappedNormData = MongoDocumentWrapper::wrapp($normData, $this->documentManager);
@@ -83,7 +93,9 @@ class JstreeType extends AbstractType
     {
         $defaultOptions = array(
             'class'             => null,
-            'document_manager'  => $this->documentManager
+            'document_manager'  => $this->documentManager,
+            'required' => false,
+            'multiple' => false
         );
 
         return array_replace($defaultOptions, $options);

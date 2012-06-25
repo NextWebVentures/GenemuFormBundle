@@ -60,7 +60,16 @@ class ChoiceToJsonTransformer implements DataTransformerInterface
             throw new UnexpectedTypeException($choices, 'array');
         }
 
-        $json = $this->choiceList->getIntersect($choices);
+        if (method_exists($this->choiceList, 'getIntersect')) {
+            $json = $this->choiceList->getIntersect($choices);
+        } else {
+            $json = array();
+            foreach ($this->choiceList->getChoices() as $choice) {
+                if (true === in_array($choice['value'], $choices, true)) {
+                    $json[] = $choice;
+                }
+            }
+        }
 
         if (false === $this->multiple) {
             $json = current($json);
