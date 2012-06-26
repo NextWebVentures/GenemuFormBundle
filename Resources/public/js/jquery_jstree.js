@@ -19,13 +19,13 @@ $(function () {
 //                if ($element.val()) {
 //                    data.inst.search($element.val());
 //                }
-                              console.info($settings.multiple);
                 if (!$settings.multiple) {
-                    console.debug($element.val());
-                    console.debug('#' + $id + '_' + ($element.val() ? $element.val() : 0));
                     data.inst.select_node('#' + $id + '_' + ($element.val() ? $element.val() : 0), true);
                 } else {
                     var val = JSON.parse($element.val());
+                    if ($.isEmptyObject(val)) {
+                        val = [0];
+                    }
                     $.each(val, function(i, check) {
                         data.inst.check_node('#' + $id + '_' + (check ? check : 0), true);
                     });
@@ -44,7 +44,10 @@ $(function () {
                 } else {
                     var val = [];
                     $.each(data.inst.get_checked(), function(i, check) {
-                        val.push($(check).data('id'));
+                        var checkId = $(check).data('id');
+                        if (checkId && checkId != '0') {
+                            val.push(checkId);
+                        }
                     });
                     $element.val(JSON.stringify(val));
                 }
@@ -96,7 +99,7 @@ $(function () {
                             if (node == -1) { // init load
                                 // add the value of current $element to tell server to return
                                 // complete expanded tree path for this element
-                                data.current = $element.val() || null;
+                                data.current = $element.val() || '';
                             }
                             return data;
                         },

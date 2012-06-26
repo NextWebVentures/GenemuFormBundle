@@ -35,6 +35,10 @@ class ValueToJsonTransformer implements DataTransformerInterface
      */
     public function transform($value)
     {
+        if (empty($value)) {
+            return null;
+        }
+
         if (is_scalar($value)) {
             return $value;
         }
