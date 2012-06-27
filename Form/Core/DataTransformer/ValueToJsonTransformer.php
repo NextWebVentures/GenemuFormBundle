@@ -53,6 +53,12 @@ class ValueToJsonTransformer implements DataTransformerInterface
      */
     public function reverseTransform($key)
     {
-        return json_decode($key);
+        $json = json_decode($key);
+
+        if (null === $json) { // if we pass simple string as $key, json_decode would fail
+            return $key;
+        }
+
+        return $key;
     }
 }
