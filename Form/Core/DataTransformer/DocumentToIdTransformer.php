@@ -68,6 +68,9 @@ class DocumentToIdTransformer implements DataTransformerInterface
 
         if ($this->dm->getUnitOfWork()->isInIdentityMap($document)) {
             $document = $this->dm->getUnitOfWork()->getDocumentIdentifier($document);
+            if (is_array($document)) {
+                $document = reset($document);
+            }
         } else if ($document instanceof \Doctrine\Common\Collections\Collection) {
             /** @var \Doctrine\ODM\MongoDB\PersistentCollection $document */
             $keys = array();
