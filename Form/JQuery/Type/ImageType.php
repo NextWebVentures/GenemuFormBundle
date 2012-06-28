@@ -75,13 +75,16 @@ class ImageType extends AbstractType
                 if ($data instanceof File) {
                     $path = $data->getPath();
                     if (empty($path)) {
-                        $path = $configs['folder'];
+                        $path = $form->getAttribute('rootDir') . '/' . $configs['folder'];
                     }
-                    $image = new Image($form->getAttribute('rootDir') . '/' . $path . '/' . $data->getFilename());
-                } else if (is_string($data)) {
-                    $image = new Image($form->getAttribute('rootDir') . '/' . $data);
+                    $image = new Image($path . '/' . $data->getFilename());
                 } else {
-                    $image = null;
+                    $data = (string) $data;
+                    if (!empty($data)) {
+                        $image = new Image($form->getAttribute('rootDir') . '/' . $data);
+                    } else {
+                        $image = null;
+                    }
                 }
             }
         }
