@@ -101,13 +101,8 @@ class DocumentToIdTransformer implements DataTransformerInterface
         // multiple
         $multiple = true;
         if (!is_array($key)) {
-            //$jsonKey = json_decode($key);
-            //if (null === $jsonKey && !is_scalar($jsonKey)) {
-                $multiple = false;
-                $key = array($key);
-            //} else {
-            //    $key = $jsonKey;
-            //}
+            $multiple = false;
+            $key = array($key);
         }
 
         $documents = array();

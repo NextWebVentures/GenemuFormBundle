@@ -59,6 +59,6 @@ class ValueToJsonTransformer implements DataTransformerInterface
             return $key;
         }
 
-        return $key;
+        return $json;
     }
 }
