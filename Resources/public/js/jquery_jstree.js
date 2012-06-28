@@ -22,9 +22,11 @@ $(function () {
                 if (!$settings.multiple) {
                     data.inst.select_node('#' + $id + '_' + ($element.val() ? $element.val() : 0), true);
                 } else {
-                    var val = JSON.parse($element.val());
-                    if ($.isEmptyObject(val)) {
+                    var val = $element.val();
+                    if ($.isEmptyObject(val) || !val || !val.length) {
                         val = [0];
+                    } else {
+                        val = JSON.parse();
                     }
                     $.each(val, function(i, check) {
                         data.inst.check_node('#' + $id + '_' + (check ? check : 0), true);
