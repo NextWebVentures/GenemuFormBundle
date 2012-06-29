@@ -26,7 +26,7 @@ $(function () {
                     if ($.isEmptyObject(val) || !val || !val.length) {
                         val = [0];
                     } else {
-                        val = JSON.parse();
+                        val = JSON.parse(val);
                     }
                     $.each(val, function(i, check) {
                         data.inst.check_node('#' + $id + '_' + (check ? check : 0), true);
