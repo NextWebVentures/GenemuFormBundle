@@ -17,7 +17,6 @@ use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\FormInterface;
 
 use Genemu\Bundle\FormBundle\Form\Core\ChoiceList\AjaxArrayChoiceList;
-use Genemu\Bundle\FormBundle\Form\Core\DataTransformer\ChoiceToJsonTransformer;
 
 /**
  * @author Adam Kuśmierz <adam@kusmierz.be>
@@ -69,13 +68,28 @@ class TokeninputType extends AbstractType
             $options['tokenLimit'] = 1;
         }
 
-        $builder
-            ->appendClientTransformer(new ChoiceToJsonTransformer(
+        if (array_key_exists('client_transformers', $options)) {
+            if (!is_array($options['client_transformers'])) {
+                $options['client_transformers'] = array($options['client_transformers']);
+            }
+            $builder->resetClientTransformers();
+        } else {
+            // default client transformer(s)
+            $options['client_transformers'] = array(
+                '\Genemu\Bundle\FormBundle\Form\Core\DataTransformer\ChoiceToJsonTransformer'
+            );
+        }
+
+        foreach (array_filter((array) $options['client_transformers']) as $client_transformer) {
+            $builder->appendClientTransformer(new $client_transformer(
                 $options['choice_list'],
                 $options['widget'],
                 $options['multiple'],
                 $options['ajax']
-            ))
+            ));
+        }
+
+        $builder
             ->setAttribute('choice_list', $options['choice_list'])
             ->setAttribute('widget', $options['widget'])
             ->setAttribute('route_name', $options['route_name']);
