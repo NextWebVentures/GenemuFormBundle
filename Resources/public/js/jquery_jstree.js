@@ -105,6 +105,7 @@ $(function () {
                             }
                             return data;
                         },
+                        type: ($element.val().length > 2048 ? 'POST' : 'GET'), // based on http://www.boutell.com/newfaq/misc/urllength.html
                         /**
                          * It will be used to populate the tree - this can be useful if you want to somehow change what
                          * the server returned on the client side before it is displayed in the tree
