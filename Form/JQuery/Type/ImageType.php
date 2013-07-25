@@ -70,57 +70,38 @@ class ImageType extends AbstractType
         $configs = $form->getAttribute('configs');
         $data = $form->getClientData();
 
-        if (!empty($data)) {
+        if (false === empty($data)) {
             if (false === ($data instanceof Image)) {
-                if ($data instanceof File) {
-                    $path = $data->getPath();
-                    if (empty($path)) {
-                        $path = $form->getAttribute('rootDir') . '/' . $configs['folder'];
-                    }
-                    $image = new Image($path . '/' . $data->getFilename());
+                if($data instanceof File) {
+                    $data = new Image($form->getAttribute('rootDir') . '/' . $configs['folder']  . '/' . $data->getFilename());
                 } else {
-                    $data = (string) $data;
-                    if (!empty($data)) {
-                        $image = new Image($form->getAttribute('rootDir') . '/' . $data);
-                    } else {
-                        $image = null;
-                    }
-                }
-            }
-        }
-
-        if (!empty($image)) {
-            $image->searchThumbnails();
-
-            if (($configs['custom_storage_folder']) && (false === ($value = $form->getClientData()) instanceof File)) {
-                // This if will be executed only when we load entity with existing file pointed to the folder different
-                // from $configs['folder']
-                $folder = dirname($value);
-            } else {
-                $folder = $data->getPath();
-                if (empty($folder)) {
-                    $folder = $configs['folder'];
+                    $data = new Image($form->getAttribute('rootDir') . '/' . $data);
                 }
             }
 
-            if (true === $image->hasThumbnail($this->selected)) {
-                $thumbnail = $image->getThumbnail($this->selected);
+            if (true === $data->hasThumbnail($this->selected)) {
+                $thumbnail = $data->getThumbnail($this->selected);
 
                 $view
                     ->set('thumbnail', array(
-                        'file' => $folder . DIRECTORY_SEPARATOR . $thumbnail->getFilename(),
+                        'file' => $configs['folder'] . '/' . $thumbnail->getFilename(),
                         'width' => $thumbnail->getWidth(),
                         'height' => $thumbnail->getHeight(),
                     ));
             }
 
-            $value = $folder . DIRECTORY_SEPARATOR . $image->getFilename();
+            if (isset($configs['custom_storage_folder']) && $configs['custom_storage_folder'] && (false === ($value = $form->getClientData())instanceof File)){
+                // This if will be executed only when we load entity with existing file pointed to the folder different
+                // from $configs['folder']
+            } else {
+                $value = $configs['folder'] . '/' . $data->getFilename();
+            }
 
             $view
                 ->set('value', $value)
                 ->set('file', $value)
-                ->set('width', $image->getWidth())
-                ->set('height', $image->getHeight());
+                ->set('width', $data->getWidth())
+                ->set('height', $data->getHeight());
         }
 
         $view->set('filters', $this->filters);

@@ -39,12 +39,17 @@
 {% spaceless %}
     <script type="text/javascript" src="{{ asset(server ~ "/js/recaptcha_ajax.js") }}"></script>
     <script type="text/javascript">
+        function genemu_recaptcha_load()
+        {
+            Recaptcha.create('{{ public_key }}', '{{ id }}_div', {{ configs|json_encode|raw }});
+        }
+
         if (window.addEventListener) {
-            window.addEventListener('load', Recaptcha.create('{{ public_key }}', '{{ id }}_div', {{ configs|json_encode|raw }}), false);
+            window.addEventListener('load', genemu_recaptcha_load, false);
         } else if (window.attachEvent) {
-            window.attachEvent('onload', Recaptcha.create('{{ public_key }}', '{{ id }}_div', {{ configs|json_encode|raw }}));
-        } else if (document.getElementById) {
-            window.onload = Recaptcha.create('{{ public_key }}', '{{ id }}_div', {{ configs|json_encode|raw }});
+            window.attachEvent('onload', genemu_recaptcha_load);
+        } else {
+            window.onload = genemu_recaptcha_load;
         }
     </script>
 {% endspaceless %}
@@ -200,7 +205,7 @@
                 var $val = $tokeninput.tokenInput('get');
 {% if multiple is empty %}                // get first (and only one) element from object
                 for (first in $val) break;
-                if ('undefined' != typeof first) {
+                if ('undefined' !== typeof first) {
                     $val = $val[first];
                 }{% endif %}
 
@@ -628,7 +633,162 @@
 {% endblock genemu_jqueryfile_javascript %}
 
 {% block genemu_jqueryimage_javascript %}
-{% endblock genemu_jqueryimage_javascript %}
+{% spaceless %}
+<script type="text/javascript">
+    jQuery(document).ready(function($) {
+        var $field = $('#{{ id }}');
+        var $form = $field.closest('form');
+        var $preview = $('#{{ id }}_img_preview');
+        var $options = $('#{{ id }}_options');
+        // Base path for apps not on DocumentRoot
+        var $basePath = '{{ asset(configs.folder) }}';
+        $basePath = $basePath.substr(0, $basePath.length - '{{ configs.folder }}'.length);
 
-{% block genemu_jqueryjstree_javascript %}
-{% endblock genemu_jqueryjstree_javascript %}
+        var $coords = {};
+        var $crop = null;
+        var $ratio = 1;
+
+        var $configs = $.extend({{ configs|merge({
+            'uploader':  asset(configs.uploader),
+            'cancelImg': asset(configs.cancelImg),
+            'script':    path(configs.script),
+            'queueID':   id ~ '_queue',
+            'width':     19,
+            'height':    19
+        })|json_encode|raw }}, {
+            onComplete: function(event, queueID, fileObj, response, data) {
+                var $response = eval('(' + response + ')');
+
+                // add if and only if path is relative
+                if ($response.thumbnail.file.search(/^[/\\]/) < 0) {
+                    $response.thumbnail.file = $basePath + $response.thumbnail.file;
+                }
+                $field.val($response.file);
+                if ($response.result == '1') {
+                    createCrop({
+                        image: $response.image,
+                        thumbnail: $response.thumbnail
+                    });
+                } else {
+                    alert('error');
+                }
+            },
+            onError: function() {
+                //alert('error');
+            }
+        });
+
+        var createCrop = function (data) {
+            if ($crop) {
+                $crop.destroy();
+            }
+
+            // add if and only if path is relative
+            if (data.thumbnail.file.search(/^[/\\]/) < 0) {
+                data.thumbnail.file = $basePath + data.thumbnail.file;
+            }
+            var $img = new Image();
+
+            $($img).load(function() {
+                {% set widthMax = thumbnail is defined ? thumbnail.width : 500 %}
+
+                $ratio = data.image.width > {{ widthMax }} ? data.image.width / {{ widthMax }} : 1;
+                $('.crop', $options).hide();
+
+                $preview
+                    .width(Math.round(data.image.width / $ratio))
+                    .height(Math.round(data.image.height / $ratio))
+                    .attr('src', this.src);
+
+                if (!$crop) {
+                    $options.fadeIn();
+                }
+
+                $crop = $.Jcrop($preview, {
+                    onSelect: checkCoords,
+                    onChange: checkCoords
+                });
+            }).attr('src', data.thumbnail.file);
+        }
+
+        var checkCoords = function(coords) {
+
+            if (coords.w > 0 && coords.h > 0) {
+                $('.crop', $options).fadeIn();
+
+                $coords = {
+                    x: coords.x * $ratio,
+                    y: coords.y * $ratio,
+                    w: coords.w * $ratio,
+                    h: coords.h * $ratio
+                };
+            } else {
+                $('.crop', $options).fadeOut();
+            }
+        }
+
+        $('.change', $options).click(function() {
+            var $this = $(this);
+            var $regex = new RegExp('^\\b(.*?) (.*)\\b', 'g');
+            var $filter = $this.attr('class').replace($regex, '$1');
+
+            var $data = {
+                filter: $filter,
+                image: $field.val(),
+                opacity: 0.5
+            };
+
+            if ('crop' === $filter && !$.isEmptyObject($coords)) {
+                $data = $.extend($data, $coords);
+            }
+
+            if (
+                $.inArray($filter, {{ filters|json_encode|raw }}) !== -1 ||
+                ( 'crop' === $filter && !$.isEmptyObject($coords) )
+            ) {
+                $this.addClass('loading');
+
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ path('genemu_form_image') }}',
+                    data: $data,
+                    dataType: 'json',
+                    success: function(data) {
+                        if ('1' === data.result) {
+                            createCrop({
+                                image: data.image,
+                                thumbnail: $.isEmptyObject(data.thumbnail) ? $.extend(data.image, {
+                                    file: data.file
+                                }) : data.thumbnail
+                            });
+                        } else {
+                            alert('Error');
+                        }
+
+                        $this.removeClass('loading');
+                    }
+                });
+            }
+        });
+
+    {% if value %}
+        createCrop({
+            thumbnail: {
+                file: '{{ thumbnail is defined ? thumbnail.file : value }}',
+                width: {{ thumbnail is defined ? thumbnail.width : width }},
+                height: {{ thumbnail is defined ? thumbnail.height : height }},
+            },
+            image: {
+                width: {{ width }},
+                height: {{ height }}
+            }
+        });
+    {% else %}
+        $options.hide();
+    {% endif %}
+
+        $field.uploadify($configs);
+    });
+</script>
+{% endspaceless %}
+{% endblock genemu_jqueryimage_javascript %}
