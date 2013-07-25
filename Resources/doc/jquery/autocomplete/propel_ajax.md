@@ -17,15 +17,13 @@ genemu_form:
 public function buildForm(FormBuilder $builder, array $options)
 {
     $builder
-        ->add('member', 'genemu_jqueryautocompleter', array(
+        ->add('member', 'genemu_jqueryautocompleter_model', array(
             'route_name' => 'ajax_member',
             'class' => 'Genemu\Bundle\ModelBundle\Model\Member',
-            'widget' => 'model'
         ))
-        ->add('cities', 'genemu_jqueryautocompleter', array(
+        ->add('cities', 'genemu_jqueryautocompleter_model', array(
             'route_name' => 'ajax_city',
             'class' => 'Genemu\Bundle\ModelBundle\Model\City',
-            'widget' => 'model',
             'multiple' => true
         ));
 }
@@ -38,6 +36,7 @@ public function buildForm(FormBuilder $builder, array $options)
 namespace MyNamespace;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 

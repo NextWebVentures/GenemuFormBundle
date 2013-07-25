@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the GenemuFormBundle package.
  *
  * (c) Olivier Chauvel <olivier@generation-multiple.com>
  *
@@ -11,7 +11,7 @@
 
 namespace Genemu\Bundle\FormBundle\Gd\Type;
 
-use Symfony\Component\HttpFoundation\Session;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
 
 use Genemu\Bundle\FormBundle\Gd\Gd;
@@ -57,7 +57,7 @@ class Captcha extends Gd
     {
         $this->session = $session;
         $this->secret = $secret;
-        $this->key = 'genemu_captcha';
+        $this->key = 'genemu_form.captcha';
     }
 
     public function setOptions(array $options)
@@ -99,6 +99,8 @@ class Captcha extends Gd
 
             $this->$key = $values;
         }
+
+        $this->session->set($this->key.'.options', $options);
     }
 
     /**
@@ -149,7 +151,7 @@ class Captcha extends Gd
             for ($i = 0; $i < $nb; ++$i) {
                 $value.= $chars[array_rand($chars)];
             }
-    
+
             $value = trim($value);
         } else {
             $value .= $this->code;

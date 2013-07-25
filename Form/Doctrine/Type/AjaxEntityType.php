@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the GenemuFormBundle package.
  *
  * (c) Olivier Chauvel <olivier@generation-multiple.com>
  *
@@ -12,9 +12,8 @@
 namespace Genemu\Bundle\FormBundle\Form\Doctrine\Type;
 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilder;
-use Symfony\Component\Form\FormView;
-use Symfony\Component\Form\FormInterface;
+use Symfony\Component\OptionsResolver\Options;
+use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
 use Doctrine\Common\Persistence\ManagerRegistry;
 
@@ -42,37 +41,36 @@ class AjaxEntityType extends AbstractType
     /**
      * {@inheritdoc}
      */
-    public function getDefaultOptions(array $options)
+    public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
-        $defaultOptions = array(
+        $registry = $this->registry;
+
+        $resolver->setDefaults(array(
             'em'            => null,
             'class'         => null,
             'property'      => null,
             'query_builder' => null,
             'choices'       => null,
             'group_by'      => null,
-            'ajax'          => false
-        );
-
-        $options = array_replace($defaultOptions, $options);
-
-        $options['choice_list'] = new AjaxEntityChoiceList(
-            $this->registry->getManager($options['em']),
-            $options['class'],
-            $options['property'],
-            $options['query_builder'],
-            $options['choices'],
-            $options['group_by'],
-            $options['ajax']
-        );
-
-        return $options;
+            'ajax'          => false,
+            'choice_list'   => function (Options $options, $previousValue) use ($registry) {
+                return new AjaxEntityChoiceList(
+                    $options['em'],
+                    $options['class'],
+                    $options['property'],
+                    $options['query_builder'],
+                    $options['choices'],
+                    $options['group_by'],
+                    $options['ajax']
+                );
+            }
+        ));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getParent(array $options)
+    public function getParent()
     {
         return 'entity';
     }

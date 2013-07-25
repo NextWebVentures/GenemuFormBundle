@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the GenemuFormBundle package.
  *
  * (c) Olivier Chauvel <olivier@generation-multiple.com>
  *
@@ -12,9 +12,10 @@
 namespace Genemu\Bundle\FormBundle\Form\JQuery\Type;
 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilder;
+use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
 use Genemu\Bundle\FormBundle\Form\Core\EventListener\GeolocationListener;
 
@@ -28,15 +29,15 @@ class GeolocationType extends AbstractType
     /**
      * {@inheritdoc}
      */
-    public function buildForm(FormBuilder $builder, array $options)
+    public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $builder->add('address', 'field');
+        $builder->add('address', 'text');
 
         foreach (array('latitude', 'longitude', 'locality', 'country') as $field) {
             $option = $options[$field];
 
             if (isset($option['enabled']) && !empty($option['enabled'])) {
-                $type = 'field';
+                $type = 'text';
                 if (isset($option['hidden']) && !empty($option['hidden'])) {
                     $type = 'hidden';
                 }
@@ -46,26 +47,27 @@ class GeolocationType extends AbstractType
         }
 
         $builder
-            ->addEventSubscriber(new GeolocationListener())
-            ->setAttribute('map', $options['map']);
+            ->addEventSubscriber(new GeolocationListener());
     }
 
     /**
      * {@inheritdoc}
      */
-    public function buildView(FormView $view, FormInterface $form)
+    public function buildView(FormView $view, FormInterface $form, array $options)
     {
-        $view
-            ->set('configs', array('elements' => array()))
-            ->set('map', $form->getAttribute('map'));
+        $view->vars = array_replace($view->vars, array(
+            'configs'   => array(),
+            'elements'  => array(),
+            'map' => $options['map']
+        ));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getDefaultOptions(array $options)
+    public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
-        $defaultOptions = array(
+        $resolver->setDefaults(array(
             'map' => false,
             'latitude' => array(
                 'enabled' => false,
@@ -83,15 +85,13 @@ class GeolocationType extends AbstractType
                 'enabled' => false,
                 'hidden' => false,
             ),
-        );
-
-        return array_replace($defaultOptions, $options);
+        ));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getParent(array $options)
+    public function getParent()
     {
         return 'form';
     }

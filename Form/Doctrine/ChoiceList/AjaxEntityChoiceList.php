@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the GenemuFormBundle package.
  *
  * (c) Olivier Chauvel <olivier@generation-multiple.com>
  *
@@ -12,9 +12,11 @@
 namespace Genemu\Bundle\FormBundle\Form\Doctrine\ChoiceList;
 
 use Symfony\Bridge\Doctrine\Form\ChoiceList\EntityChoiceList;
-use Symfony\Component\Form\Util\PropertyPath;
+use Symfony\Component\PropertyAccess\PropertyPath;
+use Symfony\Bridge\Doctrine\Form\ChoiceList\ORMQueryBuilderLoader;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 
-use Doctrine\ORM\EntityManager;
+use Doctrine\Common\Persistence\ObjectManager;
 
 /**
  * AjaxEntityChoiceList
@@ -25,6 +27,7 @@ class AjaxEntityChoiceList extends EntityChoiceList
 {
     private $ajax;
     private $propertyPath;
+    private $classMetadata;
 
     /**
      * Constructs
@@ -37,15 +40,18 @@ class AjaxEntityChoiceList extends EntityChoiceList
      * @param string         $groupBy
      * @param boolean        $ajax
      */
-    public function __construct(EntityManager $em, $class, $property = null, $qb = null, $choices = null, $groupBy = null, $ajax = false)
+    public function __construct(ObjectManager $em, $class, $property = null, $qb = null, $choices = null, $groupBy = null, $ajax = false)
     {
         $this->ajax = $ajax;
+        $this->classMetadata = $em->getClassMetadata($class);
 
         if ($property) {
             $this->propertyPath = new PropertyPath($property);
         }
 
-        parent::__construct($em, $class, $property, $qb, $choices, $groupBy);
+        $loader = $qb ? new ORMQueryBuilderLoader($qb, $em, $class) : null;
+
+        parent::__construct($em, $class, $property, $loader, $choices, array(), $groupBy);
     }
 
     /**
@@ -63,21 +69,45 @@ class AjaxEntityChoiceList extends EntityChoiceList
      */
     public function getChoices()
     {
-        $choices = parent::getChoices();
+        $choices = $this->getRemainingViews();
 
         if (empty($choices)) {
             $choices = array();
         }
 
         $array = array();
-        foreach ($choices as $value => $label) {
+        foreach ($choices as $choice) {
             $array[] = array(
-                'value' => $value,
-                'label' => $label
+                'value' => $choice->value,
+                'label' => $choice->label
             );
         }
 
         return $array;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getRemainingViews()
+    {
+        if ($this->ajax) {
+            return array();
+        }
+
+        return parent::getRemainingViews();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getPreferredViews()
+    {
+        if ($this->ajax) {
+            return array();
+        }
+
+        return parent::getPreferredViews();
     }
 
     /**
@@ -92,11 +122,11 @@ class AjaxEntityChoiceList extends EntityChoiceList
         $intersect = array();
 
         if ($this->ajax) {
-            foreach ($ids as $id) {
-                $entity = $this->getEntity($id);
+            foreach ($this->getChoicesForValues($ids) as $entity) {
+                $id = current($this->classMetadata->getIdentifierValues($entity));
 
                 if ($this->propertyPath) {
-                    $label = $this->propertyPath->getValue($entity);
+                    $label = PropertyAccess::getPropertyAccessor()->getValue($entity, $this->propertyPath);
                 } else {
                     $label = (string) $entity;
                 }

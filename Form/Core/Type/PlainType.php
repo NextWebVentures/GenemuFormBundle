@@ -2,10 +2,13 @@
 
 namespace Genemu\Bundle\FormBundle\Form\Core\Type;
 
-use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
+use Symfony\Component\OptionsResolver\Options;
+use Symfony\Component\OptionsResolver\OptionsResolverInterface;
+
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 
 /**
  * A Form type that just renders the field as a p tag. This is useful for forms where certain field
@@ -18,40 +21,55 @@ class PlainType extends AbstractType
     /**
      * {@inheritdoc}
      */
-    public function getDefaultOptions(array $options)
+    public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
-        $defaultOptions = array(
+        $resolver->setDefaults(array(
             'widget'  => 'field',
-            'configs' => array(),
             'read_only' => true,
+            'disabled' => true,
+            'date_format' => null,
+            'date_pattern' => null,
+            'time_format' => null,
             'attr' => array(
                 'class' => $this->getName()
-            )
-            //'property_path' => false,
-        );
-
-        return array_replace_recursive($defaultOptions, $options);
+            ),
+            'compound' => false,
+        ));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function buildView(FormView $view, FormInterface $form)
+    public function buildView(FormView $view, FormInterface $form, array $options)
     {
-        $value = $form->getClientData();
+        $value = $form->getViewData();
 
         // set string representation
         if (true === $value) {
             $value = 'true';
-        } else if (false === $value) {
+        } elseif (false === $value) {
             $value = 'false';
-        } else if (null === $value) {
+        } elseif (null === $value) {
             $value = 'null';
-        } else if (is_array($value)) {
+        } elseif (is_array($value)) {
             $value = implode(', ', $value);
-        } else if ($value instanceof \DateTime) {
-            $value = $value->format('Y-m-d H:i:s');
-        } else if (is_object($value)) {
+        } elseif ($value instanceof \DateTime) {
+            $dateFormat = is_int($options['date_format']) ? $options['date_format'] : DateType::DEFAULT_FORMAT;
+            $timeFormat = is_int($options['time_format']) ? $options['time_format'] : DateType::DEFAULT_FORMAT;
+            $calendar   = \IntlDateFormatter::GREGORIAN;
+            $pattern    = is_string($options['date_pattern']) ? $options['date_pattern'] : null;
+
+            $formatter  = new \IntlDateFormatter(
+                \Locale::getDefault(),
+                $dateFormat,
+                $timeFormat,
+                'UTC',
+                $calendar,
+                $pattern
+            );
+            $formatter->setLenient(false);
+            $value = $formatter->format($value);
+        } elseif (is_object($value)) {
             if (method_exists($value, '__toString')) {
                 $value = $value->__toString();
             } else {
@@ -59,15 +77,7 @@ class PlainType extends AbstractType
             }
         }
 
-        $view->set('value', (string) $value);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getParent(array $options)
-    {
-        return 'field';
+        $view->vars['value'] = (string) $value;
     }
 
     /**

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the GenemuFormBundle package.
  *
  * (c) Olivier Chauvel <olivier@generation-multiple.com>
  *
@@ -13,7 +13,8 @@ namespace Genemu\Bundle\FormBundle\Form\Core\DataTransformer;
 
 use Symfony\Component\Form\DataTransformerInterface;
 use Symfony\Component\Form\Exception\UnexpectedTypeException;
-use Symfony\Component\Form\Extension\Core\ChoiceList\ArrayChoiceList;
+use Symfony\Component\Form\Extension\Core\ChoiceList\ChoiceListInterface;
+use Symfony\Component\Form\Exception\TransformationFailedException;
 
 /**
  * ChoiceToJsonTransformer
@@ -23,24 +24,22 @@ use Symfony\Component\Form\Extension\Core\ChoiceList\ArrayChoiceList;
 class ChoiceToJsonTransformer implements DataTransformerInterface
 {
     protected $choiceList;
+    protected $ajax;
     protected $widget;
     protected $multiple;
-    protected $ajax;
 
     /**
      * Constructs
      *
      * @param ArrayChoiceList $choiceList
-     * @param string          $widget
-     * @param boolean         $multiple
      * @param boolean         $ajax
      */
-    public function __construct(ArrayChoiceList $choiceList, $widget = 'choice', $multiple = false, $ajax = false)
+    public function __construct(ChoiceListInterface $choiceList, $ajax = false, $widget = 'choice', $multiple = false)
     {
         $this->choiceList = $choiceList;
+        $this->ajax = $ajax;
         $this->multiple = $multiple;
         $this->widget = $widget;
-        $this->ajax = $ajax;
     }
 
     /**
@@ -60,13 +59,13 @@ class ChoiceToJsonTransformer implements DataTransformerInterface
             throw new UnexpectedTypeException($choices, 'array');
         }
 
-        $json = $this->choiceList->getIntersect($choices);
+        $choices = $this->choiceList->getIntersect($choices);
 
         if (!$this->multiple) {
-            $json = current($json);
+            $choices = current($choices);
         }
 
-        return json_encode($json);
+        return json_encode($choices);
     }
 
     /**
@@ -74,28 +73,74 @@ class ChoiceToJsonTransformer implements DataTransformerInterface
      */
     public function reverseTransform($json)
     {
-        $values = json_decode(is_array($json) ? current($json) : $json, true);
+        $choices = json_decode(is_array($json) ? current($json) : $json, true);
+        
+        // Single choice list
+        if (!$this->multiple) {
 
-        if ($this->multiple) {
-            $choices = array();
-            if (empty($values)) {
-                $values = array();
+            if (empty($choices)) {
+                return '';
             }
 
-            foreach ($values as $value) {
-                if (
-                    $this->ajax &&
-                    !in_array($this->widget, array('entity', 'document', 'model'), true)
-                ) {
-                    $choices[$value['value']] = $value['label'];
-                } else {
-                    $choices[] = $value['value'];
-                }
+            if (!$this->isSimpleValue($choices)) {
+                throw new TransformationFailedException('The format of the json array is bad');
             }
+
+            $this->addAjaxChoices($choices);
+
+            return $choices['value'];
+
         } else {
-            $choices = $values['value'];
-        }
 
-        return $choices;
+            if (empty($choices)) {
+                return array();
+            }
+
+            if (!$this->isArrayValue($choices)) {
+                throw new TransformationFailedException('The format of the json array is bad');
+            }
+
+            $choices = array_unique($choices, SORT_REGULAR);
+
+            $values = array();
+
+            foreach ($choices as $choice) {
+                $this->addAjaxChoices($choice);
+
+                $values[] = $choice['value'];
+            }
+
+            return $values;
+        }
+    }
+
+    private function addAjaxChoices(&$choices)
+    {
+        if ($this->ajax && !in_array($this->widget, array('entity', 'document', 'model'))) {
+            $this->choiceList->addAjaxChoice($choices);
+        }
+    }
+
+    /**
+     * Checks if the argument has 'value' and 'label' keys
+     */
+    private function isSimpleValue($array)
+    {
+        return is_array($array)
+            && array_key_exists('value', $array)
+            && array_key_exists('label', $array);
+    }
+
+    /**
+     * Checks if the argument is an array of simple values
+     */
+    private function isArrayValue($array)
+    {
+        foreach ($array as $item) {
+            if (!$this->isSimpleValue($item)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

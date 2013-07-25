@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the GenemuFormBundle package.
  *
  * (c) Olivier Chauvel <olivier@generation-multiple.com>
  *
@@ -9,8 +9,15 @@
  * file that was distributed with this source code.
  */
 
-if (file_exists($file = __DIR__.'/autoload.php')) {
-    require_once $file;
-} elseif (file_exists($file = __DIR__.'/autoload.php.dist')) {
-    require_once $file;
+if (!@$loader = include __DIR__.'/../vendor/autoload.php') {
+    throw new RuntimeException('Install dependencies to run test suite.');
 }
+
+use Doctrine\Common\Annotations\AnnotationRegistry;
+use Doctrine\ODM\MongoDB\Mapping\Driver\AnnotationDriver;
+
+AnnotationRegistry::registerLoader(array($loader, 'loadClass'));
+
+AnnotationDriver::registerAnnotationClasses();
+
+error_reporting(E_ALL ^ E_NOTICE);

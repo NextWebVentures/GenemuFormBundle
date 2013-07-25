@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the GenemuFormBundle package.
  *
  * (c) Olivier Chauvel <olivier@generation-multiple.com>
  *
@@ -12,9 +12,10 @@
 namespace Genemu\Bundle\FormBundle\Form\JQuery\Type;
 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilder;
+use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
 /**
  * ColorType
@@ -26,56 +27,37 @@ class ColorType extends AbstractType
     /**
      * {@inheritdoc}
      */
-    public function buildForm(FormBuilder $builder, array $options)
+    public function buildView(FormView $view, FormInterface $form, array $options)
     {
-        $builder
-            ->setAttribute('widget', $options['widget'])
-            ->setAttribute('configs', $options['configs']);
+        $view->vars['widget'] = $options['widget'];
+        $view->vars['configs'] = $options['configs'];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function buildView(FormView $view, FormInterface $form)
+    public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
-
-        $view
-            ->set('widget', $form->getAttribute('widget'))
-            ->set('configs', $form->getAttribute('configs'));
+        $resolver
+            ->setDefaults(array(
+                'widget'  => 'text',
+                'configs' => array(),
+            ))
+            ->setAllowedValues(array(
+                'widget' => array(
+                    'text',
+                    'image',
+                )
+            ))
+        ;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getDefaultOptions(array $options)
+    public function getParent()
     {
-        $defaultOptions = array(
-            'widget'  => 'field',
-            'configs' => array(),
-        );
-
-        return array_replace($defaultOptions, $options);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getAllowedOptionValues(array $options)
-    {
-        return array(
-            'widget' => array(
-                'field',
-                'image',
-            )
-        );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getParent(array $options)
-    {
-        return 'field';
+        return 'text';
     }
 
     /**

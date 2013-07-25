@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the GenemuFormBundle package.
  *
  * (c) Olivier Chauvel <olivier@generation-multiple.com>
  *
@@ -33,10 +33,10 @@ abstract class DoctrineOrmTestCase extends \PHPUnit_Framework_TestCase
     /**
      * @return EntityManager
      */
-    static public function createTestEntityManager($paths = array())
+    public static function createTestEntityManager($paths = array())
     {
-        if (!class_exists('PDO') || !in_array('pgsql', \PDO::getAvailableDrivers())) {
-            self::markTestSkipped('This test requires PgSQL support in your environment');
+        if (!class_exists('PDO') || !in_array('sqlite', \PDO::getAvailableDrivers())) {
+            self::markTestSkipped('This test requires SQLite support in your environment');
         }
 
         $config = new Configuration();
@@ -48,7 +48,7 @@ abstract class DoctrineOrmTestCase extends \PHPUnit_Framework_TestCase
         $config->setMetadataCacheImpl(new ArrayCache());
 
         $params = array(
-            'driver' => 'pdo_pgsql',
+            'driver' => 'pdo_sqlite',
             'dbname' => 'test',
             'memory' => true,
         );

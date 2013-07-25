@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the GenemuFormBundle package.
  *
  * (c) Olivier Chauvel <olivier@generation-multiple.com>
  *
@@ -41,6 +41,8 @@ class Configuration implements ConfigurationInterface
         $this->addImage($rootNode);
         $this->addAutocompleter($rootNode);
         $this->addTokeninput($rootNode);
+        $this->addAutocomplete($rootNode);
+        $this->addSelect2($rootNode);
 
         return $treeBuilder;
     }
@@ -62,7 +64,6 @@ class Configuration implements ConfigurationInterface
                     ->children()
                         ->booleanNode('enabled')->defaultTrue()->end()
                         ->scalarNode('driver')->defaultValue('gd')->end()
-                        ->scalarNode('position')->defaultValue('left')->end()
                         ->scalarNode('width')->defaultValue(100)->end()
                         ->scalarNode('height')->defaultValue(30)->end()
                         ->scalarNode('length')->defaultValue(4)->end()
@@ -132,9 +133,30 @@ class Configuration implements ConfigurationInterface
                     ->treatTrueLike(array('enabled' => true))
                     ->children()
                         ->booleanNode('enabled')->defaultTrue()->end()
-                        ->scalarNode('server_url')->defaultValue('http://api.recaptcha.net')->end()
                         ->scalarNode('public_key')->isRequired()->end()
                         ->scalarNode('private_key')->isRequired()->end()
+                        ->arrayNode('validation')
+                            ->canBeUnset()
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->scalarNode('host')->defaultValue('api-verify.recaptcha.net')->end()
+                                ->scalarNode('port')->defaultValue(80)->end()
+                                ->scalarNode('path')->defaultValue('/verify')->end()
+                                ->scalarNode('timeout')->defaultValue(10)->end()
+                                ->scalarNode('code')->defaultNull()->end()
+                                ->arrayNode('proxy')
+                                    ->canBeUnset()
+                                    ->children()
+                                        ->scalarNode('host')->isRequired()->end()
+                                        ->scalarNode('port')->defaultValue('80')->end()
+                                    ->end()
+                                ->end()
+                            ->end()
+                        ->end()
+                        ->variableNode('configs')->defaultValue(array())->end()
+                    /* TO BE DEPRECATED */
+                        ->scalarNode('code')->defaultNull()->end()
+                        ->scalarNode('server_url')->defaultValue('http://api.recaptcha.net')->end()
                         ->arrayNode('ssl')
                             ->canBeUnset()
                             ->treatNullLike(array('use' => true))
@@ -146,7 +168,7 @@ class Configuration implements ConfigurationInterface
                                 ->end()
                             ->end()
                         ->end()
-                        ->variableNode('configs')->defaultValue(array())->end()
+                    /* END */
                     ->end()
                 ->end()
             ->end()
@@ -216,7 +238,7 @@ class Configuration implements ConfigurationInterface
                     ->treatTrueLike(array('enabled' => true))
                     ->children()
                         ->booleanNode('enabled')->defaultTrue()->end()
-                        ->scalarNode('uploader')->isRequired()->end()
+                        ->scalarNode('swf')->isRequired()->end()
                         ->scalarNode('cancel_img')->defaultValue('/bundles/genemuform/images/cancel.png')->end()
                         ->scalarNode('folder')->defaultValue('/upload')->end()
                         ->variableNode('configs')->defaultValue(array())->end()
@@ -296,6 +318,47 @@ class Configuration implements ConfigurationInterface
                     ->children()
                         ->booleanNode('doctrine')->defaultTrue()->end()
                         ->booleanNode('mongodb')->defaultFalse()->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
+    }
+
+    /**
+     * Add configuration Autocompleter
+     *
+     * @param ArrayNodeDefinition $rootNode
+     */
+    private function addAutocomplete(ArrayNodeDefinition $rootNode)
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('autocomplete')
+                    ->canBeUnset()
+                    ->treatNullLike(array('enabled' => true))
+                    ->treatTrueLike(array('enabled' => true))
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->booleanNode('enabled')->defaultFalse()->end()
+                        ->booleanNode('doctrine')->defaultTrue()->end()
+                        ->booleanNode('mongodb')->defaultFalse()->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
+    }
+
+    private function addSelect2(ArrayNodeDefinition $rootNode)
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('select2')
+                    ->canBeUnset()
+                    ->treatNullLike(array('enabled' => true))
+                    ->treatTrueLike(array('enabled' => true))
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->booleanNode('enabled')->defaultFalse()->end()
                     ->end()
                 ->end()
             ->end()

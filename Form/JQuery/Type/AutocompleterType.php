@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the GenemuFormBundle package.
  *
  * (c) Olivier Chauvel <olivier@generation-multiple.com>
  *
@@ -12,11 +12,13 @@
 namespace Genemu\Bundle\FormBundle\Form\JQuery\Type;
 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilder;
+use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\OptionsResolver\Options;
+use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
-use Genemu\Bundle\FormBundle\Form\Core\ChoiceList\AjaxArrayChoiceList;
+use Genemu\Bundle\FormBundle\Form\Core\ChoiceList\AjaxSimpleChoiceList;
 use Genemu\Bundle\FormBundle\Form\Core\DataTransformer\ChoiceToJsonTransformer;
 
 /**
@@ -24,37 +26,36 @@ use Genemu\Bundle\FormBundle\Form\Core\DataTransformer\ChoiceToJsonTransformer;
  */
 class AutocompleterType extends AbstractType
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function buildForm(FormBuilder $builder, array $options)
-    {
-        if (!$options['choice_list']) {
-            $options['choice_list'] = new AjaxArrayChoiceList($options['choices'], $options['ajax']);
-        }
+    private $widget;
 
-        $builder
-            ->appendClientTransformer(new ChoiceToJsonTransformer(
-                $options['choice_list'],
-                $options['widget'],
-                $options['multiple'],
-                $options['ajax']
-            ))
-            ->setAttribute('choice_list', $options['choice_list'])
-            ->setAttribute('widget', $options['widget'])
-            ->setAttribute('route_name', $options['route_name']);
+    public function __construct($widget)
+    {
+        $this->widget = $widget;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function buildView(FormView $view, FormInterface $form)
+    public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $datas = json_decode($form->getClientData(), true);
+        $builder->addViewTransformer(new ChoiceToJsonTransformer(
+            $options['choice_list'],
+            $options['ajax'],
+            $this->widget,
+            $options['multiple']
+        ));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function buildView(FormView $view, FormInterface $form, array $options)
+    {
+        $datas = json_decode($form->getViewData(), true);
         $value = '';
 
         if (!empty($datas)) {
-            if ($form->getAttribute('multiple')) {
+            if ($options['multiple']) {
                 foreach ($datas as $data) {
                     $value .= $data['label'] . ', ';
                 }
@@ -63,59 +64,65 @@ class AutocompleterType extends AbstractType
             }
         }
 
-        $view
-            ->set('autocompleter_value', $value)
-            ->set('route_name', $form->getAttribute('route_name'));
+        $view->vars = array_replace($view->vars, array(
+            'autocompleter_value' => $value,
+            'route_name' => $options['route_name'],
+            'free_values' => $options['free_values'],
+        ));
+
+        // Adds a custom block prefix
+        array_splice(
+            $view->vars['block_prefixes'],
+            array_search($this->getName(), $view->vars['block_prefixes']),
+            0,
+            'genemu_jqueryautocompleter'
+        );
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getDefaultOptions(array $options)
+    public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
-        $defaultOptions = array(
-            'widget' => 'choice',
+        $widget = $this->widget;
+
+        $resolver->setDefaults(array(
             'route_name' => null,
-            'ajax' => false,
-        );
+            'ajax' => function (Options $options, $previousValue) {
+                if (!empty($options['route_name']) || $options['free_values']) {
+                    return true;
+                }
 
-        $options = array_replace($defaultOptions, $options);
+                return false;
+            },
+            'choice_list' => function (Options $options, $previousValue) use ($widget) {
+                if (!in_array($widget, array('entity', 'document', 'model'))) {
+                    return new AjaxSimpleChoiceList($options['choices'], $options['ajax']);
+                }
 
-        if (!empty($options['route_name'])) {
-            $options['ajax'] = true;
-        }
+                return $previousValue;
+            },
+            'freeValues' => false,
+            'free_values' => function (Options $options, $previousValue) {
+                if ($options['multiple']) {
+                    return false;
+                }
 
-        return $options;
+                return $options['freeValues'] ?: $previousValue;
+            }
+        ));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getAllowedOptionValues(array $options)
+    public function getParent()
     {
-        return array(
-            'widget' => array(
-                'choice',
-                'language',
-                'country',
-                'locale',
-                'entity',
-                'document',
-                'model',
-            )
-        );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getParent(array $options)
-    {
-        if (in_array($options['widget'], array('entity', 'document', 'model'), true)) {
-            return 'genemu_ajax' . $options['widget'];
+        if (in_array($this->widget, array('entity', 'document', 'model'), true)) {
+            return 'genemu_ajax' . $this->widget;
         }
 
-        return $options['widget'];
+        return $this->widget;
     }
 
     /**
@@ -123,6 +130,6 @@ class AutocompleterType extends AbstractType
      */
     public function getName()
     {
-        return 'genemu_jqueryautocompleter';
+        return 'genemu_jqueryautocompleter_' . $this->widget;
     }
 }

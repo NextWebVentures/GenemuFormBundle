@@ -1,9 +1,8 @@
 {
     "name": "genemu/form-bundle",
-    "type": "form-bundle",
-    "description": "Extra Form",
+    "type": "symfony-bundle",
+    "description": "Extra form types for your Symfony2 projects",
     "keywords": ["form", "extra form"],
-    "version": "1.0",
     "license": "MIT",
     "authors": [
         {
@@ -11,30 +10,44 @@
             "email": "olivier@generation-multiple.com"
         },
         {
+            "name": "Bilal Amarni",
+            "email": "bilal.amarni@gmail.com"
+        },
+        {
             "name": "Community contributions",
             "homepage": "https://github.com/genemu/GenemuFormBundle/contributors"
         }
     ],
+    "minimum-stability": "dev",
     "require": {
         "php": ">=5.3.2",
-        "symfony/framework-bundle": "2.*",
-        "symfony/form": "2.*"
+        "symfony/framework-bundle": "~2.3",
+        "symfony/form": "~2.3"
     },
-    "recommend": {
-        "symfony/twig-bridge": "2.*",
-        "symfony/doctrine-bridge": "2.*",
-        "symfony/doctrine-bundle": "2.*",
-        "symfony/http-kernel": "2.*",
-        "symfony/finder": "2.*"
+    "require-dev": {
+        "phpunit/phpunit": "3.7.*",
+        "symfony/doctrine-bridge": "~2.3",
+        "symfony/finder": "2.*",
+        "doctrine/orm": "2.*",
+        "doctrine/doctrine-bundle": "1.*",
+        "doctrine/mongodb-odm-bundle": "*",
+        "propel/propel-bundle": "*"
     },
-    "suggset": {
-        "symfony/mongodb-odm-bundle": "2.*",
-        "propel/propel-bundle": "2.*"
+    "suggest": {
+        "symfony/twig-bridge": "For integration into Twig templates",
+        "symfony/doctrine-bundle": "In order to use some form types with Doctrine",
+        "symfony/finder": "For an image type",
+        "symfony/mongodb-odm-bundle": "For MongoDB integration"
     },
     "autoload": {
         "psr-0": {
             "Genemu\\Bundle\\FormBundle": ""
         }
     },
-    "target-dir": "Genemu/Bundle/FormBundle"
+    "target-dir": "Genemu/Bundle/FormBundle",
+    "extra": {
+        "branch-alias": {
+            "dev-master": "2.2-dev"
+        }
+    }
 }

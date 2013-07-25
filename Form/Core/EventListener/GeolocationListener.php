@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the GenemuFormBundle package.
  *
  * (c) Olivier Chauvel <olivier@generation-multiple.com>
  *
@@ -12,7 +12,7 @@
 namespace Genemu\Bundle\FormBundle\Form\Core\EventListener;
 
 use Symfony\Component\Form\FormEvents;
-use Symfony\Component\Form\Event\DataEvent;
+use Symfony\Component\Form\FormEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 use Genemu\Bundle\FormBundle\Geolocation\AddressGeolocation;
@@ -27,7 +27,7 @@ class GeolocationListener implements EventSubscriberInterface
     /**
      * {@inheritdoc}
      */
-    public function onBindNormData(DataEvent $event)
+    public function onBind(FormEvent $event)
     {
         $data = $event->getData();
 
@@ -49,8 +49,8 @@ class GeolocationListener implements EventSubscriberInterface
     /**
      * {@inheritdoc}
      */
-    static public function getSubscribedEvents()
+    public static function getSubscribedEvents()
     {
-        return array(FormEvents::BIND_NORM_DATA => 'onBindNormData');
+        return array(FormEvents::BIND => 'onBind');
     }
 }

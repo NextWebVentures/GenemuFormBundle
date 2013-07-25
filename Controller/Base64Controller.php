@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the GenemuFormBundle package.
  *
  * (c) Olivier Chauvel <olivier@generation-multiple.com>
  *
@@ -11,25 +11,29 @@
 
 namespace Genemu\Bundle\FormBundle\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\DependencyInjection\ContainerAware;
 use Symfony\Component\HttpFoundation\Response;
 
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-
 /**
- * class Base64Controller
+ * Class Base64Controller
  *
  * @author Olivier Chauvel <olivier@generation-multiple.com>
  */
-class Base64Controller extends Controller
+class Base64Controller extends ContainerAware
 {
-    /**
-     * @Route("/genemu_base64", name="genemu_base64")
-     */
-    public function base64Action(Request $request)
+    public function refreshCaptchaAction()
     {
-        $query = $request->server->get('QUERY_STRING');
+        $captcha = $this->container->get('genemu.gd.captcha');
+        $options = $this->container->get('session')->get('genemu_form.captcha.options', array());
+        $captcha->setOptions($options);
+        $datas = preg_split('([;,]{1})', substr($captcha->getBase64(), 5));
+
+        return new Response(base64_decode($datas[2]), 200, array('Content-Type' => $datas[0]));
+    }
+
+    public function base64Action()
+    {
+        $query = $this->container->get('request')->server->get('QUERY_STRING');
         $datas = preg_split('([;,]{1})', $query);
 
         return new Response(base64_decode($datas[2]), 200, array('Content-Type' => $datas[0]));

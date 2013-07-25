@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the GenemuFormBundle package.
  *
  * (c) Olivier Chauvel <olivier@generation-multiple.com>
  *
@@ -11,10 +11,10 @@
 
 namespace Genemu\Bundle\FormBundle\Form\JQuery\Type;
 
-use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
+use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
 /**
  * SliderType
@@ -26,58 +26,32 @@ class SliderType extends AbstractType
     /**
      * {@inheritdoc}
      */
-    public function buildForm(FormBuilder $builder, array $options)
+    public function buildView(FormView $view, FormInterface $form, array $options)
     {
-        $configs = array(
-            'min' => $options['min'],
-            'max' => $options['max'],
-            'step' => $options['step'],
-            'orientation' => $options['orientation']
-        );
-
-        $builder->setAttribute('configs', $configs);
+        $view->vars['configs'] = $options;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function buildView(FormView $view, FormInterface $form)
+    public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
-        $view->set('configs', $form->getAttribute('configs'));
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getDefaultOptions(array $options)
-    {
-        $defaultOptions = array(
+        $resolver->setDefaults(array(
             'min' => 0,
             'max' => 100,
             'step' => 1,
             'orientation' => 'horizontal'
-        );
+        ));
 
-        return array_replace($defaultOptions, $options);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getAllowedOptionValues(array $options)
-    {
-        return array(
+        $resolver->setAllowedValues(array(
             'orientation' => array(
                 'horizontal',
                 'vertical'
             )
-        );
+        ));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getParent(array $options)
+    public function getParent()
     {
         return 'integer';
     }

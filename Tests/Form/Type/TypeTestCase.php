@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the GenemuFormBundle package.
  *
  * (c) Olivier Chauvel <olivier@generation-multiple.com>
  *
@@ -11,7 +11,7 @@
 
 namespace Genemu\Bundle\FormBundle\Tests\Form\Type;
 
-use Symfony\Tests\Component\Form\Extension\Core\Type\TypeTestCase as BaseTypeTestCase;
+use Symfony\Component\Form\Tests\Extension\Core\Type\TypeTestCase as BaseTypeTestCase;
 
 use Genemu\Bundle\FormBundle\Tests\Form\Extension\TypeExtensionTest;
 

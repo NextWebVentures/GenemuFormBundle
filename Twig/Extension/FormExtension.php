@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the GenemuFormBundle package.
  *
  * (c) Olivier Chauvel <olivier@generation-multiple.com>
  *
@@ -11,16 +11,29 @@
 
 namespace Genemu\Bundle\FormBundle\Twig\Extension;
 
-use Symfony\Bridge\Twig\Extension\FormExtension as BaseFormExtension;
 use Symfony\Component\Form\FormView;
+use Symfony\Bridge\Twig\Form\TwigRendererInterface;
 
 /**
  * FormExtension extends Twig with form capabilities.
  *
  * @author Olivier Chauvel <olivier@generation-multiple.com>
  */
-class FormExtension extends BaseFormExtension
+class FormExtension extends \Twig_Extension
 {
+    /**
+     * This property is public so that it can be accessed directly from compiled
+     * templates without having to call a getter, which slightly decreases performance.
+     *
+     * @var \Symfony\Component\Form\FormRendererInterface
+     */
+    public $renderer;
+
+    public function __construct(TwigRendererInterface $renderer)
+    {
+        $this->renderer = $renderer;
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -28,32 +41,23 @@ class FormExtension extends BaseFormExtension
     {
         return array(
             'form_javascript' => new \Twig_Function_Method($this, 'renderJavascript', array('is_safe' => array('html'))),
-            'form_stylesheet' => new \Twig_Function_Method($this, 'renderStylesheet', array('is_safe' => array('html'))),
+            'form_stylesheet' => new \Twig_Function_Node('Symfony\Bridge\Twig\Node\SearchAndRenderBlockNode', array('is_safe' => array('html'))),
         );
     }
 
     /**
      * Render Function Form Javascript
      *
-     * @param FromView $view
+     * @param FormView $view
+     * @param bool $prototype
      *
      * @return string
      */
-    public function renderJavascript(FormView $view)
+    public function renderJavascript(FormView $view, $prototype = false)
     {
-        return $this->render($view, 'javascript');
-    }
+        $block = $prototype ? 'javascript_prototype' : 'javascript';
 
-    /**
-     * Render Function Form Stylesheet
-     *
-     * @param FromView $view
-     *
-     * @return string
-     */
-    public function renderStylesheet(FormView $view)
-    {
-        return $this->render($view, 'stylesheet');
+        return $this->renderer->searchAndRenderBlock($view, $block);
     }
 
     /**

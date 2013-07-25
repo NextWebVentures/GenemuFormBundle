@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the GenemuFormBundle package.
  *
  * (c) Olivier Chauvel <olivier@generation-multiple.com>
  *
@@ -11,10 +11,12 @@
 
 namespace Genemu\Bundle\FormBundle\Form\JQuery\Type;
 
-use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
+use Symfony\Component\OptionsResolver\Options;
+use Symfony\Component\OptionsResolver\OptionsResolverInterface;
+use Symfony\Component\Form\Extension\Core\Type\DateType as BaseDateType;
 
 /**
  * DateType
@@ -34,68 +36,75 @@ class DateType extends AbstractType
     {
         $this->options = $options;
     }
-
+    
     /**
      * {@inheritdoc}
      */
-    public function buildForm(FormBuilder $builder, array $options)
+    public function buildView(FormView $view, FormInterface $form, array $options)
     {
-        $options = $this->getDefaultOptions($options);
-
-        $builder
-            ->setAttribute('years', $options['years'])
-            ->setAttribute('culture', $options['culture'])
-            ->setAttribute('configs', $options['configs']);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function buildView(FormView $view, FormInterface $form)
-    {
-        $configs = $form->getAttribute('configs');
-        $year = $form->getAttribute('years');
+        $configs = $options['configs'];
+        $years = $options['years'];
 
         $configs['dateFormat'] = 'yy-mm-dd';
-        if ('single_text' === $form->getAttribute('widget')) {
-            $formatter = $form->getAttribute('formatter');
+        if ('single_text' === $options['widget']) {
+            $dateFormat = is_int($options['format']) ? $options['format'] : BaseDateType::DEFAULT_FORMAT;
+            $timeFormat = \IntlDateFormatter::NONE;
+            $calendar   = \IntlDateFormatter::GREGORIAN;
+            $pattern    = is_string($options['format']) ? $options['format'] : null;
+
+            $formatter  = new \IntlDateFormatter(
+                \Locale::getDefault(),
+                $dateFormat,
+                $timeFormat,
+                'UTC',
+                $calendar,
+                $pattern
+            );
+            $formatter->setLenient(false);
 
             $configs['dateFormat'] = $this->getJavascriptPattern($formatter);
         }
 
-        $view
-            ->set('min_year', min($year))
-            ->set('max_year', max($year))
-            ->set('configs', $configs)
-            ->set('culture', $form->getAttribute('culture'));
+        $view->vars = array_replace($view->vars, array(
+            'min_year' => min($years),
+            'max_year' => max($years),
+            'configs' => $configs,
+            'culture' => $options['culture'],
+        ));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getDefaultOptions(array $options)
+    public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
-        $defaultOptions = array(
-            'culture' => \Locale::getDefault(),
-            'widget' => 'choice',
-            'configs' => array_merge(array(
-                'dateFormat' => null,
-            ), $this->options),
-        );
+        $configs = $this->options;
 
-        $options = array_replace_recursive($defaultOptions, $options);
+        $resolver
+            ->setDefaults(array(
+                'culture' => \Locale::getDefault(),
+                'widget' => 'choice',
+                'years'  => range(date('Y') - 5, date('Y') + 5),
+                'configs' => array(
+                    'dateFormat' => null,
+                ),
+            ))
+            ->setNormalizers(array(
+                'configs' => function (Options $options, $value) use ($configs) {
+                    $result = array_merge($configs, $value);
+                    if ('single_text' !== $options['widget'] || isset($result['buttonImage'])) {
+                        $result['showOn'] = 'button';
+                    }
 
-        if ('single_text' !== $options['widget'] || isset($options['configs']['buttonImage'])) {
-            $options['configs']['showOn'] = 'button';
-        }
-
-        return $options;
+                    return $result;
+                }
+            ));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getParent(array $options)
+    public function getParent()
     {
         return 'date';
     }

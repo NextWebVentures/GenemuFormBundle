@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the GenemuFormBundle package.
  *
  * (c) Olivier Chauvel <olivier@generation-multiple.com>
  *
@@ -11,10 +11,11 @@
 
 namespace Genemu\Bundle\FormBundle\Form\Core\Type;
 
-use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
+use Symfony\Component\OptionsResolver\Options;
+use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
 /**
  * TinymceType
@@ -38,40 +39,42 @@ class TinymceType extends AbstractType
     /**
      * {@inheritdoc}
      */
-    public function buildForm(FormBuilder $builder, array $options)
+    public function buildView(FormView $view, FormInterface $form, array $options)
     {
-        $options = $this->getDefaultOptions($options);
-
-        $builder->setAttribute('configs', $options['configs']);
+        $view->vars['configs'] = $options['configs'];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function buildView(FormView $view, FormInterface $form)
+    public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
-        $view->set('configs', $form->getAttribute('configs'));
+        $configs = array_merge($this->options, array(
+            'language' => \Locale::getDefault(),
+        ));
+
+        $resolver
+            ->setDefaults(array(
+                'configs' => array(),
+                'required' => false,
+                'theme' => 'default',
+            ))
+            ->setAllowedTypes(array(
+                'configs' => 'array',
+                'theme' => 'string',
+            ))
+            ->setNormalizers(array(
+                'configs' => function (Options $options, $value) use ($configs) {
+                    return array_merge($configs, $value);
+                },
+            ))
+        ;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getDefaultOptions(array $options)
-    {
-        $defaultOptions = array(
-            'configs' => array_merge($this->options, array(
-                'language' => \Locale::getDefault(),
-            )),
-            'required' => false,
-        );
-
-        return array_replace_recursive($defaultOptions, $options);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getParent(array $options)
+    public function getParent()
     {
         return 'textarea';
     }

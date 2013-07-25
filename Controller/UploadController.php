@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the GenemuFormBundle package.
  *
  * (c) Olivier Chauvel <olivier@generation-multiple.com>
  *
@@ -11,11 +11,8 @@
 
 namespace Genemu\Bundle\FormBundle\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\DependencyInjection\ContainerAware;
 use Symfony\Component\HttpFoundation\Response;
-
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 
 use Genemu\Bundle\FormBundle\Gd\File\Image;
 
@@ -24,14 +21,11 @@ use Genemu\Bundle\FormBundle\Gd\File\Image;
  *
  * @author Olivier Chauvel <olivier@generation-multiple.com>
  */
-class UploadController extends Controller
+class UploadController extends ContainerAware
 {
-    /**
-     * @Route("/genemu_upload", name="genemu_upload")
-     */
-    public function uploadAction(Request $request)
+    public function uploadAction()
     {
-        $handle = $request->files->get('Filedata');
+        $handle = $this->container->get('request')->files->get('Filedata');
 
         $folder = $this->container->getParameter('genemu.form.file.folder');
         $uploadDir = $this->container->getParameter('genemu.form.file.upload_dir');
@@ -57,12 +51,14 @@ class UploadController extends Controller
                         $handle->createThumbnail($name, $thumbnail[0], $thumbnail[1]);
                     }
 
-                    $selected = key(reset($thumbnails));
-                    if ($this->container->hasParameter('genemu.form.image.selected')) {
-                        $selected = $this->container->getParameter('genemu.form.image.selected');
-                    }
+                    if (0 < count($thumbnails)) {
+                        $selected = key(reset($thumbnails));
+                        if ($this->container->hasParameter('genemu.form.image.selected')) {
+                            $selected = $this->container->getParameter('genemu.form.image.selected');
+                        }
 
-                    $thumbnail = $handle->getThumbnail($selected);
+                        $thumbnail = $handle->getThumbnail($selected);
+                    }
                 }
 
                 $json = array_replace($json, array(

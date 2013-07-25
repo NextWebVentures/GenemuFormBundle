@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the GenemuFormBundle package.
  *
  * (c) Olivier Chauvel <olivier@generation-multiple.com>
  *
@@ -12,9 +12,10 @@
 namespace Genemu\Bundle\FormBundle\Form\Core\Type;
 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilder;
+use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
 use Genemu\Bundle\FormBundle\Gd\Type\Captcha;
 use Genemu\Bundle\FormBundle\Form\Core\Validator\CaptchaValidator;
@@ -44,50 +45,48 @@ class CaptchaType extends AbstractType
     /**
      * {@inheritdoc}
      */
-    public function buildForm(FormBuilder $builder, array $options)
+    public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $this->captcha->setOptions($options);
 
         $builder
-            ->addValidator(new CaptchaValidator($this->captcha))
+            ->addEventSubscriber(new CaptchaValidator($this->captcha))
             ->setAttribute('captcha', $this->captcha)
-            ->setAttribute('format', $options['format'])
-            ->setAttribute('position', $options['position']);
+        ;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function buildView(FormView $view, FormInterface $form)
+    public function buildView(FormView $view, FormInterface $form, array $options)
     {
-        $captcha = $form->getAttribute('captcha');
+        $captcha = $this->captcha;
 
-        $view
-            ->set('value', '')
-            ->set('position', $form->getAttribute('position'))
-            ->set('src', $captcha->getBase64($form->getAttribute('format')))
-            ->set('width', $captcha->getWidth())
-            ->set('height', $captcha->getHeight());
+        $view->vars = array_replace($view->vars, array(
+            'value' => '',
+            'src' => $captcha->getBase64($options['format']),
+            'width' => $captcha->getWidth(),
+            'height' => $captcha->getHeight(),
+        ));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getDefaultOptions(array $options)
+    public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
-        $defaultOptions = array_merge(array(
-            'attr' => array(
-                'autocomplete' => 'off'
-            )
-        ), $this->options);
+        $defaults = array_merge(
+            array('attr' => array('autocomplete' => 'off')),
+            $this->options
+        );
 
-        return array_replace_recursive($defaultOptions, $options);
+        $resolver->setDefaults($defaults);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getParent(array $options)
+    public function getParent()
     {
         return 'text';
     }

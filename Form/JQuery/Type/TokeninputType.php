@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
+ * This file is part of the GenemuFormBundle package.
  *
  * (c) Olivier Chauvel <olivier@generation-multiple.com>
  *
@@ -12,11 +12,13 @@
 namespace Genemu\Bundle\FormBundle\Form\JQuery\Type;
 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilder;
+use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\OptionsResolver\Options;
+use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
-use Genemu\Bundle\FormBundle\Form\Core\ChoiceList\AjaxArrayChoiceList;
+use Genemu\Bundle\FormBundle\Form\Core\ChoiceList\AjaxSimpleChoiceList;
 use Genemu\Bundle\FormBundle\Form\Core\DataTransformer\ChoiceToJsonTransformer;
 
 /**
@@ -24,80 +26,47 @@ use Genemu\Bundle\FormBundle\Form\Core\DataTransformer\ChoiceToJsonTransformer;
  */
 class TokeninputType extends AbstractType
 {
-    /**
-     * Available options to set
-     *
-     * @var array
-     */
-    protected $_availableTokeninputOptions = array(
-        'method',
-        'queryParam',
-        'searchDelay',
-        'minChars',
-        'propertyToSearch',
-        'jsonContainer',
-        'crossDomain',
-        'prePopulate',
-        'hintText',
-        'noResultsText',
-        'searchingText',
-        'deleteText',
-        'animateDropdown',
-        'theme',
-        'resultsFormatter',
-        'tokenFormatter',
-        'tokenLimit',
-        'tokenDelimiter',
-        'preventDuplicates',
-        'tokenValue'
-    );
+    private $widget;
 
-    /**
-     * {@inheritdoc}
-     */
-    public function buildForm(FormBuilder $builder, array $options)
+    public function __construct($widget)
     {
-        if (true === empty($options['choice_list'])) {
-            $options['choice_list'] = new AjaxArrayChoiceList($options['choices'], $options['ajax']);
-        }
-
-        if (isset($options['tokenLimit']) && is_numeric($options['tokenLimit']) && $options['tokenLimit'] > 0) {
-            $options['multiple'] = (1 != $options['tokenLimit']);
-        }
-
-        if (!$options['multiple']) {
-            $options['tokenLimit'] = 1;
-        }
-
-        $builder
-            ->appendClientTransformer(new ChoiceToJsonTransformer(
-                $options['choice_list'],
-                $options['widget'],
-                $options['multiple'],
-                $options['ajax']
-            ))
-            ->setAttribute('choice_list', $options['choice_list'])
-            ->setAttribute('widget', $options['widget'])
-            ->setAttribute('route_name', $options['route_name']);
-
-        foreach ($this->_availableTokeninputOptions as $option) {
-            if (isset($options[$option])) {
-                $builder->setAttribute($option, $options[$option]);
-            }
-        }
-
+        $this->widget = $widget;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function buildView(FormView $view, FormInterface $form)
+    public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $datas = json_decode($form->getClientData(), true);
+        if (isset($options['configs']['tokenLimit']) && is_numeric($options['configs']['tokenLimit']) && $options['configs']['tokenLimit'] > 0) {
+            $options['multiple'] = (1 != $options['configs']['tokenLimit']);
+        }
+
+        if (!$options['multiple']) {
+            $options['configs']['tokenLimit'] = 1;
+        }
+
+        $builder
+            ->addViewTransformer(new ChoiceToJsonTransformer(
+                $options['choice_list'],
+                $options['ajax'],
+                $this->widget,
+                $options['multiple']
+            ))
+            ->setAttribute('choice_list', $options['choice_list'])
+            ->setAttribute('route_name', $options['route_name']);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function buildView(FormView $view, FormInterface $form, array $options)
+    {
+        $datas = json_decode($form->getViewData(), true);
         $value = '';
 
-        if (false === empty($datas)) {
-            if (true === $form->getAttribute('multiple')) {
+        if (!empty($datas)) {
+            if ($options['multiple']) {
                 foreach ($datas as $data) {
                     $value .= $data['label'] . ', ';
                 }
@@ -106,70 +75,72 @@ class TokeninputType extends AbstractType
             }
         }
 
-        $view
-            ->set('tokeninput_value', $value)
-            ->set('route_name', $form->getAttribute('route_name'));
+        $view->vars['tokeninput_value'] = $value;
+        $view->vars['configs'] = $options['configs'];
+        $view->vars['route_name'] = $form->getConfig()->getAttribute('route_name');
 
-        foreach ($this->_availableTokeninputOptions as $option) {
-            if ($form->hasAttribute($option)) {
-                $view->set($option, $form->getAttribute($option));
-            }
-        }
+        array_splice(
+            $view->vars['block_prefixes'],
+            array_search($this->getName(), $view->vars['block_prefixes']),
+            0,
+            'genemu_jquerytokeninput'
+        );
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getDefaultOptions(array $options)
+    public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
-        $defaultOptions = array(
-            'widget' => 'choice',
-            'route_name' => null,
-            'ajax' => false,
+        $widget = $this->widget;
+
+        $defaults = array(
             'queryParam' => 'term',
             'preventDuplicates' => true,
             'tokenValue' => 'value',
             'propertyToSearch' => 'label',
-            'theme' => 'facebook'
+            'theme' => 'facebook',
         );
 
-        if (false === empty($options['route_name'])) {
-            $options['ajax'] = true;
-        }
+        $resolver
+            ->setDefaults(array(
+                'route_name' => null,
+                'ajax' => function (Options $options, $previousValue) {
+                    if (null === $previousValue) {
+                        if (false === empty($options['route_name'])) {
+                            return true;
+                        }
+                    }
 
-        $options = array_replace($defaultOptions, $options);
+                    return false;
+                },
+                'choice_list' => function (Options $options, $previousValue) use ($widget) {
+                    if (!in_array($widget, array('entity', 'document', 'model'))) {
+                        return new AjaxSimpleChoiceList($options['choices'], $options['ajax']);
+                    }
 
-        return $options;
+                    return $previousValue;
+                },
+                'configs' => $defaults,
+            ))
+            ->setNormalizers(array(
+                'configs' => function (Options $options, $configs) use ($defaults) {
+                    return array_merge($defaults, $configs);
+                },
+            ))
+        ;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getAllowedOptionValues(array $options)
+    public function getParent()
     {
-        return array(
-            'widget' => array(
-                'choice',
-                'language',
-                'country',
-                'locale',
-                'entity',
-                'document',
-                'model',
-            )
-        );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getParent(array $options)
-    {
-        if (true === in_array($options['widget'], array('entity', 'document', 'model'), true)) {
-            return 'genemu_ajax' . $options['widget'];
+        if (true === in_array($this->widget, array('entity', 'document', 'model'), true)) {
+            return 'genemu_ajax' . $this->widget;
         }
 
-        return $options['widget'];
+        return $this->widget;
     }
 
     /**
@@ -177,6 +148,6 @@ class TokeninputType extends AbstractType
      */
     public function getName()
     {
-        return 'genemu_jquerytokeninput';
+        return 'genemu_jquerytokeninput_' . $this->widget;
     }
 }

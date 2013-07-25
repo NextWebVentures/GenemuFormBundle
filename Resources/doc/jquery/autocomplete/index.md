@@ -9,16 +9,17 @@ public function buildForm(FormBuilder $builder, array $options)
 {
     $builder
         // ...
-        ->add('country', 'genemu_jqueryautocompleter', array(
-            'widget' => 'country'
-        ))
-        ->add('language', 'genemu_jqueryautocompleter', array(
-            'widget' => 'language'
-        ));
+        ->add('country', 'genemu_jqueryautocompleter_country')
+        ->add('timezone', 'genemu_jqueryautocompleter_timezone')
+        ->add('language', 'genemu_jqueryautocompleter_language');
 }
 ```
 
 ## Extra
+
+### Text
+1. [Text](https://github.com/genemu/GenemuFormBundle/blob/master/Resources/doc/jquery/autocomplete/text.md)
+2. [Ajax Suggestions](https://github.com/genemu/GenemuFormBundle/blob/master/Resources/doc/jquery/autocomplete/text_ajax.md)
 
 ### Choices
 1. [Choices](https://github.com/genemu/GenemuFormBundle/blob/master/Resources/doc/jquery/autocomplete/choices.md)
