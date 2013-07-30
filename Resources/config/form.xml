@@ -42,6 +42,9 @@
             <tag name="form.type" alias="genemu_tinymce" />
             <argument>%genemu.form.tinymce.configs%</argument>
         </service>
+        <service id="genemu.form.core.type.subform" class="Genemu\Bundle\FormBundle\Form\Core\Type\SubFormType">
+            <tag name="form.type" alias="genemu_subform" />
+        </service>
     </services>
 
 </container>

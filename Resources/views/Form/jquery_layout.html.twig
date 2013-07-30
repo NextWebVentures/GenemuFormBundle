@@ -218,6 +218,8 @@
                 {% else %}
                     {% set prePopulate = value %}
                 {% endif %}
+            {% else %}
+                {% set prePopulate = '[]' %}
             {% endif %}
 
             var $configs = $.extend({{ configs|json_encode|raw }}, {
@@ -665,3 +667,5 @@
     </script>
 {% endblock %}
 
+{% block genemu_jqueryjstree_javascript %}
+{% endblock genemu_jqueryjstree_javascript %}

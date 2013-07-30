@@ -55,6 +55,9 @@
             <tag name="form.type" alias="genemu_jqueryslider" />
         </service>
         <service id="genemu.form.jquery.type.tokeninput" class="Genemu\Bundle\FormBundle\Form\JQuery\Type\TokeninputType" abstract="true" />
+        <service id="genemu.form.jquery.type.jstree" class="Genemu\Bundle\FormBundle\Form\JQuery\Type\JstreeType">
+            <argument type="service" id="doctrine.odm.mongodb.document_manager" />
+            <tag name="form.type" alias="genemu_jqueryjstree" />
+        </service>
     </services>
-
 </container>
