@@ -56,7 +56,7 @@ class JstreeType extends AbstractType
     {
         $builder->addViewTransformer(new DocumentToIdTransformer(
             $options['document_manager'],
-            $options['class']
+            $options['config']['class']
         ), true);
 
         $builder
