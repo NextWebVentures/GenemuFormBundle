@@ -23,7 +23,7 @@ This allows better integration of web pages.
     <script src="{{ asset('tinymce/tiny_mce.js') }}"></script>
     <script src="{{ asset('js/i18n/jquery-ui-i18n.js') }}"></script>
 
-    <script src="{{ asset('js/uploadify/jquery.uploadify.v2.1.4.min.js') }}"></script>
+    <script src="{{ asset('js/uploadify/jquery.uploadify.min.js') }}"></script>
     <script src="{{ asset('js/uploadify/swfobject.js') }}"></script>
 
     <script src="{{ asset('js/jquery.Jcrop.min.js') }}"></script>
