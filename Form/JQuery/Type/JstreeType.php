@@ -54,13 +54,16 @@ class JstreeType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $builder->addViewTransformer(new DocumentToIdTransformer(
+        $builder->addModelTransformer(new DocumentToIdTransformer(
             $options['document_manager'],
             $options['config']['class']
         ), true);
 
         $builder
-                ->addViewTransformer(new ValueToJsonTransformer())
+//                ->addViewTransformer(new DocumentToIdTransformer(
+//            $options['document_manager'],
+//            $options['config']['class']
+//        ), true)
                 ->setAttribute('config', $options['config'])
                 ->setAttribute('required', (bool) $options['required'])
                 ->setAttribute('multiple', (bool) $options['multiple']);
@@ -122,7 +125,7 @@ class JstreeType extends AbstractType
      */
     public function getParent()
     {
-        return 'form';
+        return 'text';
     }
 
     /**
