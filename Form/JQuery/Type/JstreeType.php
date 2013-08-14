@@ -60,10 +60,10 @@ class JstreeType extends AbstractType
         ), true);
 
         $builder
-//                ->addViewTransformer(new DocumentToIdTransformer(
-//            $options['document_manager'],
-//            $options['config']['class']
-//        ), true)
+                ->addViewTransformer(new ValueToJsonTransformer(
+            $options['document_manager'],
+            $options['config']['class']
+        ), true)
                 ->setAttribute('config', $options['config'])
                 ->setAttribute('required', (bool) $options['required'])
                 ->setAttribute('multiple', (bool) $options['multiple']);
