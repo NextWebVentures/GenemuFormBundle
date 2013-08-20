@@ -150,11 +150,18 @@
 
 {% block genemu_jquerytokeninput_widget %}
 {% spaceless %}
+{% if value is iterable %}
+    {% set value = value[0] %}
+{% endif %}
 {{ block("hidden_widget") }}
 
 {% set id = "tokeninput_" ~ id %}
 {% set full_name = "tokeninput_" ~ full_name %}
-{% set value = tokeninput_value %}
+{% if tokeninput_value is iterable %}
+    {% set value = tokeninput_value[0] %}
+{% else %}
+    {% set value = tokeninput_value %}
+{% endif %}
 {{ block("form_widget_simple") }}
 {% endspaceless %}
 {% endblock genemu_jquerytokeninput_widget %}
